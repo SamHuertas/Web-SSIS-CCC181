@@ -1,11 +1,14 @@
 <script setup>
-  import Header from '@/components/Header.vue';
-  import StudentManagement from '@/components/StudentManagement.vue';
+  import { SidebarProvider, SidebarTrigger } from './components/ui/sidebar';
+  import AppSidebar from './components/AppSidebar.vue';
 </script>
 
-<template> 
-<body class="bg-blue-100">
-  <Header />
-  <StudentManagement />
-  </body>
+<template>
+  <SidebarProvider>
+    <AppSidebar />
+    <main>
+      <SidebarTrigger />
+      <slot />
+    </main>
+  </SidebarProvider>
 </template>
