@@ -6,8 +6,14 @@ export default {
   	extend: {
   		fontFamily: {
   			sans: [
-  				'Poppins',
-  				'sans-serif'
+  				'ui-monospace', // or your preferred monospace font
+  				'SFMono-Regular',
+  				'Menlo',
+  				'Monaco',
+  				'Consolas',
+  				'"Liberation Mono"',
+  				'"Courier New"',
+  				'monospace'
   			]
   		},
   		gridTemplateColumns: {
