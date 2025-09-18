@@ -1,5 +1,5 @@
 <script setup>
-    import { GraduationCap, Plus, Search } from 'lucide-vue-next';
+    import { ContactRound, Plus, Search } from 'lucide-vue-next';
     import { defineProps } from 'vue';
     import EditButton from '@/components/EditButton.vue';
     import DeleteButton from '@/components/DeleteButton.vue';
@@ -20,19 +20,19 @@
         <div class="bg-white rounded-lg shadow h-full p-6 space-y-6 w-full">
             <div class="space-y-6">
                 <div class="flex items-center justify-between">
-                <div>
-                    <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-2">
-                    <graduation-cap class="h-8 w-8 text-blue-500"/>
-                    Students
-                    </h1>
-                    <p class="text-gray-600 mt-2">Manage student records</p>
-                </div>
-                
-                <button
-                    class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                    <Plus class="mr-2 h-4 w-4"/>
-                    Add Student
-                </button>
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-2">
+                        <ContactRound class="h-8 w-8 text-blue-500"/>
+                        Students
+                        </h1>
+                        <p class="text-gray-600 mt-2">Manage student records</p>
+                    </div>
+                    
+                    <button
+                        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                        <Plus class="mr-2 h-4 w-4"/>
+                        Add Student
+                    </button>
                 </div>
             </div>
             

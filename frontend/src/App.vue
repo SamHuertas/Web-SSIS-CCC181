@@ -3,6 +3,7 @@
   import AppSidebar from './components/AppSidebar.vue';
   import DashboardView from './views/DashboardView.vue';
   import StudentManagementView from './views/StudentManagementView.vue';
+  import ProgramManagementView from './views/ProgramManagementView.vue';
 </script>
 
 <template>
@@ -10,8 +11,8 @@
     <AppSidebar />
     <main class="flex-1 flex flex-col">
       <SidebarTrigger />
-      <DashboardView />
-      <!--<StudentManagementView /> -->
+      <!--<DashboardView />-->
+      <ProgramManagementView /> 
     </main>
   </SidebarProvider>
 </template>
