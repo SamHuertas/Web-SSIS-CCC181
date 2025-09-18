@@ -1,5 +1,7 @@
 <script setup>
     import StatCardsSection from '@/components/StatCardsSection.vue';
+    import SecondStatCardsSection from '@/components/SecondStatCardsSection.vue';
+    import ThirdStatCardsSection from '@/components/ThirdStatCardsSection.vue';
 </script>
 
 <template>
@@ -11,8 +13,10 @@
                 <p class="text-gray-600 mt-2">Overview of your student information system</p>
                 </div>
 
-               <!-- stat card Component -->
+               <!-- stat card Components -->
                 <StatCardsSection />
+                <SecondStatCardsSection />
+                <ThirdStatCardsSection />
         </div>
       </main>
     </div>
