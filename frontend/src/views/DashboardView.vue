@@ -12,7 +12,6 @@
                 <h1 class="text-3xl font-bold text-gray-900">Dashboard</h1>
                 <p class="text-gray-600 mt-2">Overview of your student information system</p>
                 </div>
-
                <!-- stat card Components -->
                 <StatCardsSection />
                 <SecondStatCardsSection />

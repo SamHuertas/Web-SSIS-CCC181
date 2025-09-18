@@ -4,6 +4,7 @@
   import DashboardView from './views/DashboardView.vue';
   import StudentManagementView from './views/StudentManagementView.vue';
   import ProgramManagementView from './views/ProgramManagementView.vue';
+  import CollegeManagementView from './views/CollegeManagementView.vue';
 </script>
 
 <template>
@@ -11,8 +12,9 @@
     <AppSidebar />
     <main class="flex-1 flex flex-col">
       <SidebarTrigger />
-      <!--<DashboardView />-->
-      <ProgramManagementView /> 
+      <DashboardView />
+      <!--<ProgramManagementView /> -->
+      <!--<CollegeManagementView /> -->
     </main>
   </SidebarProvider>
 </template>
