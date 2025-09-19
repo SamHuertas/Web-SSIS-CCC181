@@ -111,8 +111,73 @@
                                     </td>
                                 </tr>
                             </tbody>
-
                         </table>
+                        <!-- if no data searched 
+                        <div v-if="paginatedStudents.length === 0" class="text-center py-8 text-gray-500">
+                            No students found matching your search.
+                        </div> -->
+                    </div>
+                </div>
+
+                <!--Pagination-->
+                <div class="border-t border-gray-200">
+                    <div class="flex items-center justify-between px-6 py-4">
+                        <div class="flex items-center text-sm text-gray-700">
+                            <span>
+                            Showing 1 to 10 of 100 results
+                            </span>
+                        </div>
+
+                        <div class="flex items-center space-x-4">
+                            <div class="flex items-center space-x-2">
+                                <label for="itemsPerPage" class="text-sm text-gray-700">Show:</label>
+                                <select class="px-3 py-1.5 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
+                                >
+                                    <option :value="5">5</option>
+                                    <option :value="10">10</option>
+                                    <option :value="25">25</option>
+                                    <option :value="50">50</option>
+                                </select>
+                            </div>
+
+                            <div class="flex items-center space-x-1">
+                                <button
+                                    @click="currentPage = currentPage - 1"
+                                    :disabled="currentPage === 1"
+                                    :class="[
+                                    'px-3 py-1.5 text-sm font-medium rounded-md border transition-colors',
+                                    currentPage === 1
+                                        ? 'text-gray-400 bg-gray-50 border-gray-200 cursor-not-allowed'
+                                        : 'text-gray-700 bg-white border-gray-300 hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500'
+                                    ]"
+                                >
+                                    Previous
+                                </button>
+                                
+                                <div>
+                                    <button
+                                    class="
+                                        px-3 py-1.5 text-sm font-medium rounded-md border transition-colors text-white bg-green-600 border-green-600 shadow-sm"
+                                    >
+                                    1
+                                    </button>
+                                    <span class="px-2 py-1.5 text-sm text-gray-500">...</span>
+                                </div>
+
+                                <button
+                                    @click="currentPage = currentPage + 1"
+                                    :disabled="currentPage === totalPages"
+                                    :class="[
+                                    'px-3 py-1.5 text-sm font-medium rounded-md border transition-colors',
+                                    currentPage === totalPages
+                                        ? 'text-gray-400 bg-gray-50 border-gray-200 cursor-not-allowed'
+                                         : 'text-gray-700 bg-white border-gray-300 hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500'
+                                    ]"
+                                >
+                                    Next
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
