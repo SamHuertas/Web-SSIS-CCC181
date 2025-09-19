@@ -1,5 +1,12 @@
 <script setup>
 import { LayoutDashboard, UserRound, GraduationCap, Building2 } from "lucide-vue-next";
+import {RouterLink, useRoute} from 'vue-router'
+
+    const route = useRoute();
+    const isActiveLink = (routePath) => {
+      return route.path === routePath;
+    }
+
 import {
   Sidebar,
   SidebarContent,
@@ -28,37 +35,37 @@ import SidebarHeader from "./ui/sidebar/SidebarHeader.vue";
             <SidebarMenu class="space-y-1">
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <a to="/home" class="flex items-center gap-3 px-5 py-5 rounded-md hover:bg-gray-100 transition-colors">
+                  <RouterLink to="/" class="flex items-center gap-3 px-5 py-5 rounded-md hover:bg-gray-100 transition-colors">
                     <LayoutDashboard class="w-5 h-5" />
                     <span class="font-semibold">Dashboard</span>
-                  </a>
+                  </RouterLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <a to="/profile" class="flex items-center gap-3 px-4 py-5 rounded-md hover:bg-gray-100 transition-colors">
+                  <RouterLink to="/students" class="flex items-center gap-3 px-4 py-5 rounded-md hover:bg-gray-100 transition-colors">
                     <UserRound class="w-5 h-5" />
                     <span class="font-semibold">Students</span>
-                  </a>
+                  </RouterLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <a to="/courses" class="flex items-center gap-3 px-4 py-5 rounded-md hover:bg-gray-100 transition-colors">
+                  <RouterLink to="/programs" class="flex items-center gap-3 px-4 py-5 rounded-md hover:bg-gray-100 transition-colors">
                     <GraduationCap class="w-5 h-5" />
-                    <span class="font-semibold">Courses</span>
-                  </a>
+                    <span class="font-semibold">Programs</span>
+                  </RouterLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <a to="/institutions" class="flex items-center gap-3 px-4 py-5 rounded-md hover:bg-gray-100 transition-colors">
+                  <RouterLink to="/colleges" class="flex items-center gap-3 px-4 py-5 rounded-md hover:bg-gray-100 transition-colors">
                     <Building2 class="w-5 h-5" />
                     <span class="font-semibold">Colleges</span>
-                  </a>
+                  </RouterLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>

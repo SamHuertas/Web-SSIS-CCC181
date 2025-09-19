@@ -5,6 +5,7 @@
   import StudentManagementView from './views/StudentManagementView.vue';
   import ProgramManagementView from './views/ProgramManagementView.vue';
   import CollegeManagementView from './views/CollegeManagementView.vue';
+  import { RouterView } from 'vue-router';
 </script>
 
 <template>
@@ -12,9 +13,7 @@
     <AppSidebar />
     <main class="flex-1 flex flex-col">
       <SidebarTrigger />
-      <DashboardView />
-      <!--<ProgramManagementView /> -->
-      <!--<CollegeManagementView /> -->
+      <RouterView />
     </main>
   </SidebarProvider>
 </template>
