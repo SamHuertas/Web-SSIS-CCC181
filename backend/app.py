@@ -1,10 +1,12 @@
-from flask import Flask, render_template
+from flask import Flask
+from routes.students import students_bp
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)  
 
-@app.route('/')
-def index():
-    return render_template('index.html')
+# Register routes
+app.register_blueprint(students_bp)
 
-if __name__ == '__main__':
-    app.run()
+if __name__ == "__main__":
+    app.run(debug=True)

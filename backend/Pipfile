@@ -6,6 +6,12 @@ name = "pypi"
 [packages]
 flask = "*"
 python-dotenv = "*"
+flask-cors = "*"
+flask-sqlalchemy = "*"
+psycopg2 = "*"
+supabase = "*"
+requests = "*"
+utils = "*"
 
 [dev-packages]
 pytest = "*"
