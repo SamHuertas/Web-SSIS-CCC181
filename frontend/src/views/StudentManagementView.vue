@@ -1,16 +1,9 @@
 <script setup>
     import { ContactRound, Plus, Search } from 'lucide-vue-next';
-    import { defineProps, ref } from 'vue'; 
+    import { ref, onMounted } from 'vue'; 
     import EditButton from '@/components/EditButton.vue';
     import DeleteButton from '@/components/DeleteButton.vue';
     import AddStudentModal from '@/components/modals/AddStudentModal.vue';
-    
-    const student = defineProps({
-        gender: {
-            type: String,
-            default: 'Male'
-        }
-    });
 
     // modal state
     const isModalVisible = ref(false);
@@ -23,6 +16,22 @@
     const closeModal = () => {
         isModalVisible.value = false;
     };
+
+    const students = ref([]);
+    const loading = ref(true);
+
+    onMounted(async () => {
+  try {
+    const res = await fetch("http://127.0.0.1:8000/students");
+    const data = await res.json();
+    console.log(students)
+    students.value = Array.isArray(data) ? data : [];
+  } catch (err) {
+    console.error("Error fetching students:", err);
+  } finally {
+    loading.value = false;
+  }
+});
 </script>
 
 <template>
@@ -94,21 +103,25 @@
 
                             <tbody>
                                 <!--loopable for dynamic data or modified for pagination-->
-                                <tr class="border-b border-gray-100 hover:bg-gray-50">
-                                    <td class="py-3 px-4 font-mono text-sm">2024-0001</td>
-                                    <td class="py-3 px-4 font-medium text-gray-900">Sam</td>
-                                    <td class="py-3 px-4 font-medium text-gray-900">Huertas</td>
-                                    <td class="py-3 px-4 font-medium">BSCS</td>
+                                <tr 
+                                v-for="student in students"
+                                :key="student.id"
+                                class="border-b border-gray-100 hover:bg-gray-50"
+                                >
+                                    <td class="py-3 px-4 font-mono text-sm">{{student.id_number}}</td>
+                                    <td class="py-3 px-4 font-medium text-gray-900">{{student.first_name}}</td>
+                                    <td class="py-3 px-4 font-medium text-gray-900">{{student.last_name}}</td>
+                                    <td class="py-3 px-4 font-medium">{{student.program_code}}</td>
                                     <td class="py-3 px-4 text-center">
                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border border-gray-300">
-                                            3
+                                            {{student.year_level}}
                                         </span>
                                     </td>
                                     <td class="py-3 px-4 text-center">
                                         <span :class="[
                                             'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium',
-                                            student.gender === 'Male' ? 'bg-blue-100 text-blue-800' :
-                                            student.gender === 'Female' ? 'bg-pink-100 text-pink-800' :
+                                            student.gender === 'male' ? 'bg-blue-100 text-blue-800' :
+                                            student.gender === 'female' ? 'bg-pink-100 text-pink-800' :
                                             'bg-gray-100 text-gray-800'
                                         ]">
                                             {{ student.gender }}
