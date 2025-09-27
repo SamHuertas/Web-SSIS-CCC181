@@ -14,3 +14,16 @@ def get_colleges():
         return jsonify(result.data)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+    
+@colleges_bp.route('/colleges', methods=['POST'])
+def add_college():
+    """Add a new college"""
+    try:
+        data = request.json
+        result = supabase.table('colleges').insert({
+            'college_code': data['college_code'],
+            'college_name': data['college_name']
+        }).execute()
+        return jsonify(result.data), 201
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
