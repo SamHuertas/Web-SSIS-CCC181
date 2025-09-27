@@ -1,0 +1,255 @@
+<script setup>
+  import { watch, reactive, ref, onMounted } from 'vue';
+  import { X } from 'lucide-vue-next';
+  import axios from 'axios';
+
+  // Props
+  const props = defineProps({
+    isVisible: {
+      type: Boolean,
+      default: false
+    },
+    college: {
+      type: Object,
+      default: null
+    }
+  });
+
+  // Emits
+  const emit = defineEmits(['close', 'refreshTable']);
+
+  const closeModal = () => {
+    emit('close');
+  };
+
+  // Close modal on Escape key
+  const handleKeydown = (event) => {
+    if (event.key === 'Escape') {
+      closeModal();
+    }
+  };
+
+  // Close modal when clicking outside
+  const closeOnBackdrop = (event) => {
+    if (event.target === event.currentTarget) {
+      closeModal();
+    }
+  };
+
+  // Add/remove event listener for Escape key
+  const setupKeyListener = () => {
+    if (props.isVisible) {
+      document.addEventListener('keydown', handleKeydown);
+    } else {
+      document.removeEventListener('keydown', handleKeydown);
+    }
+  };
+
+  // Watch for visibility changes to manage event listener
+  watch(() => props.isVisible, setupKeyListener);
+
+  const form = reactive({
+    college_code: '',
+    college_name: ''
+  });
+
+  const isLoading = ref(false);
+  const errorMessage = ref('');
+
+  // Function to populate form with college data
+  const populateForm = () => {
+    if (props.college) {
+      form.college_code = props.college.college_code;
+      form.college_name = props.college.college_name;
+    } else {
+      form.college_code = '';
+      form.college_name = '';
+    }
+  };
+
+  // Watch for college prop changes to populate form
+  watch(() => props.college, (newCollege) => {
+    populateForm();
+  });
+
+  // Also populate form when modal becomes visible
+  watch(() => props.isVisible, (isVisible) => {
+    if (isVisible) {
+      populateForm();
+      errorMessage.value = ''; // Clear errors when opening modal
+    }
+  });
+
+  const submitCollege = async () => {
+    if (!props.college) {
+      console.error("No college data available");
+      return;
+    }
+    
+    errorMessage.value = '';
+    isLoading.value = true;
+
+    console.log("Updating college:", {
+      originalCode: props.college.college_code,
+      formData: form
+    });
+
+    try {
+      const response = await axios.put(`http://127.0.0.1:8000/colleges/${props.college.college_code}`, form);
+      console.log("College updated successfully:", response.data);
+      emit('refreshTable');
+      closeModal();
+    } catch (err) {
+      console.error("Error updating college:", err);
+      console.error("Error response:", err.response?.data);
+      if (err.response?.status === 404) {
+        errorMessage.value = 'College not found. It may have been deleted.';
+      } else if (err.response?.data?.error) {
+        errorMessage.value = err.response.data.error;
+      } else {
+        errorMessage.value = 'An error occurred while updating the college.';
+      }
+    } finally {
+      isLoading.value = false;
+    }
+  }
+</script>
+
+<template>
+  <!-- Modal with transition built-in -->
+  <Transition name="dialog">
+    <div 
+      v-if="isVisible" 
+      class="fixed inset-0 z-50 bg-black/80"
+      @click="closeOnBackdrop"
+    >
+      <div class="fixed left-1/2 top-1/2 z-50 grid w-full max-w-2xl -translate-x-1/2 -translate-y-1/2 gap-4 border bg-white p-6 shadow-lg duration-200 sm:rounded-lg">
+        <!-- Close button -->
+         <div>
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-lg font-semibold text-gray-900">
+                Edit College - {{ college?.college_code }}
+                </h3>
+                <button
+                @click="closeModal"
+                class="text-gray-400 hover:text-gray-600 focus:outline-none"
+                :disabled="isLoading"
+                >
+                    <X class="h-5 w-5" />
+                </button>
+            </div>
+
+            <!-- Error Message -->
+            <div v-if="errorMessage" class="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+              <p class="text-sm text-red-600">{{ errorMessage }}</p>
+            </div>
+
+            <form @submit.prevent="submitCollege" class="space-y-4">
+                <div class="grid grid-cols-1 gap-4">
+                    <div>
+                        <label for="collegecode" class="block text-sm font-medium text-gray-900 mb-1">College Code</label>
+                        <input
+                        v-model="form.college_code"
+                        id="collegecode"
+                        type="text"
+                        required
+                        :disabled="isLoading"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 sm:text-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
+                        placeholder="e.g. CCS"
+                        />
+                    </div>
+                </div>
+                <div>
+                    <div>
+                        <label for="collegename" class="block text-sm font-medium text-gray-900 mb-1">College Name</label>
+                        <input
+                        v-model="form.college_name"
+                        id="collegename"
+                        type="text"
+                        required
+                        :disabled="isLoading"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 sm:text-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
+                        placeholder="e.g. College of Computer Studies"
+                        />
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-3 pt-6 border-gray-200">
+                    <button
+                        type="button"
+                        @click="closeModal"
+                        :disabled="isLoading"
+                        class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-900 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors disabled:bg-gray-100 disabled:cursor-not-allowed"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        type="submit"
+                        :disabled="isLoading"
+                        class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors disabled:bg-green-400 disabled:cursor-not-allowed"
+                    >
+                        <span v-if="isLoading">Updating...</span>
+                        <span v-else>Update College</span>
+                    </button>
+                </div>
+            </form>
+         </div>
+      </div>
+    </div>
+  </Transition>
+</template>
+
+<style scoped>
+/* Your existing styles remain the same */
+.dialog-enter-active,
+.dialog-leave-active {
+  transition: all 200ms ease-in-out;
+}
+
+.dialog-enter-from,
+.dialog-leave-to {
+  opacity: 0;
+}
+
+.dialog-enter-to,
+.dialog-leave-from {
+  opacity: 1;
+}
+
+.dialog-enter-active .bg-white,
+.dialog-leave-active .bg-white {
+  transition: all 200ms ease-in-out;
+}
+
+.dialog-enter-from .bg-white {
+  opacity: 0;
+  transform: translate(-50%, -52%) scale(0.95);
+}
+
+.dialog-leave-to .bg-white {
+  opacity: 0;
+  transform: translate(-50%, -48%) scale(0.95);
+}
+
+.dialog-enter-to .bg-white,
+.dialog-leave-from .bg-white {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.ring-offset-background {
+  --tw-ring-offset-color: #ffffff;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+</style>

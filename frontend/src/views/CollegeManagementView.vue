@@ -4,22 +4,38 @@
     import DeleteButton from '@/components/DeleteButton.vue';
     import { defineProps, onMounted, reactive, ref } from 'vue';
     import AddCollegeModal from '@/components/modals/AddCollegeModal.vue';
+    import EditCollegeModal from '@/components/modals/EditCollegeModal.vue';
 
 
     // modal state
-    const isModalVisible = ref(false);
+    const isAddModalVisible = ref(false);
+    const isEditModalVisible = ref(false);
+    const selectedCollege = ref(null);
     
     // Modal functions
-    const openModal = () => {
-        isModalVisible.value = true;
+    const openAddModal = () => {
+        isAddModalVisible.value = true;
     };
     
-    const closeModal = () => {
-        isModalVisible.value = false;
+    const closeAddModal = () => {
+        isAddModalVisible.value = false;
+    };
+
+    const openEditModal = (college) => {
+        selectedCollege.value = { ...college };
+        isEditModalVisible.value = true;
+    };
+    
+    const closeEditModal = () => {
+        selectedCollege.value = null;
+        isEditModalVisible.value = false;
     };
 
     const colleges = ref([]);
     const loading = ref(true);
+    const searchTerm = ref('');
+    const currentPage = ref(1);
+    const totalPages = ref(1);
 
     const fetchColleges = async () => {
         try{
@@ -55,7 +71,7 @@
                             </h1>
                             <p class="text-gray-600 mt-2">Manage college departments</p>
                         </div>
-                        <button @click="openModal" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                        <button @click="openAddModal" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
                             <Plus class="mr-2 h-4 w-4" />
                             Add College
                         </button>
@@ -108,7 +124,7 @@
                                             <td class="py-3 px-4 font-medium text-gray-900">{{college.college_name}}</td>
                                             <td class="py-3 px-4">
                                             <div class="flex items-center justify-center space-x-2">
-                                                <EditButton/>
+                                                <EditButton @click="openEditModal(college)"/>
                                                 <DeleteButton/>
                                             </div>
                                         </td>
@@ -186,7 +202,8 @@
                     </div>
                 </div>
             </div>
-            <AddCollegeModal :is-visible="isModalVisible" @close="closeModal" @refreshTable="forceRefresh"/> 
+            <AddCollegeModal :is-visible="isAddModalVisible" @close="closeAddModal" @refreshTable="forceRefresh"/> 
+            <EditCollegeModal :is-visible="isEditModalVisible" :college="selectedCollege" @close="closeEditModal" @refreshTable="forceRefresh" />
         </main>
     </div>
 </template>
