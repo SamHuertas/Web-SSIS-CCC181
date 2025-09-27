@@ -36,9 +36,10 @@
 
     onMounted(fetchColleges);
 
-    const handleCollegeAdded = () => {
+    const forceRefresh = () => {
         fetchColleges();
     }
+
 </script>
 
 <template>
@@ -185,7 +186,7 @@
                     </div>
                 </div>
             </div>
-            <AddCollegeModal :is-visible="isModalVisible" @close="closeModal" @college-added="handleCollegeAdded"/> 
+            <AddCollegeModal :is-visible="isModalVisible" @close="closeModal" @refreshTable="forceRefresh"/> 
         </main>
     </div>
 </template>

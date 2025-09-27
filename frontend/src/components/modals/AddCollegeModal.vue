@@ -12,7 +12,7 @@
   });
 
   // Emits
-  const emit = defineEmits(['close']);
+  const emit = defineEmits(['close', 'refreshTable']);
 
   const closeModal = () => {
     emit('close');
@@ -50,16 +50,18 @@
   });
 
   const submitCollege = async () => {
-    try {
-      const response = await axios.post("http://127.0.0.1:8000/colleges", form)
-      console.log("College Added:", response.data)
-    } catch (err) {
-      console.error("Error adding college:", err)
-    } finally {
-      form.college_code=''
-      form.college_name=''
-    }
+  try {
+    const response = await axios.post("http://127.0.0.1:8000/colleges", form)
+    console.log("College added:", response.data)
+    emit('refreshTable');
+  } catch (err) {
+    console.error("Error adding college:", err)
+  } finally {
+    form.college_code = ''
+    form.college_name = ''
+    closeModal();
   }
+}
   
 </script>
 
@@ -86,7 +88,7 @@
                 </button>
             </div>
 
-            <form class="space-y-4">
+            <form @submit.prevent="submitCollege" class="space-y-4">
                 <div class="grid grid-cols-1 gap-4">
                     <div>
                         <label for="collegecode" class="block text-sm font-medium text-gray-900 mb-1">College Code</label>
@@ -124,7 +126,6 @@
                     </button>
                     <button
                         type="submit"
-                        @click="submitCollege"
                         class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
                     >
                         Add College
