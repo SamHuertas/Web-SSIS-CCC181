@@ -2,6 +2,43 @@
     import { School, Search, Plus } from 'lucide-vue-next';
     import EditButton from '@/components/EditButton.vue';
     import DeleteButton from '@/components/DeleteButton.vue';
+    import { defineProps, onMounted, reactive, ref } from 'vue';
+    import AddCollegeModal from '@/components/modals/AddCollegeModal.vue';
+
+
+    // modal state
+    const isModalVisible = ref(false);
+    
+    // Modal functions
+    const openModal = () => {
+        isModalVisible.value = true;
+    };
+    
+    const closeModal = () => {
+        isModalVisible.value = false;
+    };
+
+    const colleges = ref([]);
+    const loading = ref(true);
+
+    const fetchColleges = async () => {
+        try{
+            const res = await fetch("http://127.0.0.1:8000/colleges");
+            const data = await res.json();
+            colleges.value = data;
+            console.log(colleges)
+        } catch (err) {
+            console.error("Error fetching colleges:", err);
+        } finally {
+            loading.value = false;
+        }
+    }
+
+    onMounted(fetchColleges);
+
+    const handleCollegeAdded = () => {
+        fetchColleges();
+    }
 </script>
 
 <template>
@@ -17,7 +54,7 @@
                             </h1>
                             <p class="text-gray-600 mt-2">Manage college departments</p>
                         </div>
-                        <button class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                        <button @click="openModal" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
                             <Plus class="mr-2 h-4 w-4" />
                             Add College
                         </button>
@@ -26,7 +63,7 @@
                     <div class="bg-white border border-gray-200 rounded-lg shadow-sm">
                         <div class="p-6 pb-4">
                             <div class="flex items-center justify-between mb-4">
-                                <h3 class="text-lg font-semibold text-gray-900">College Departments (2)</h3>
+                                <h3 class="text-lg font-semibold text-gray-900">College Departments ({{ colleges.length }})</h3>
                                 <div class="flex items-center space-x-4">
                                     <div class="relative">
                                     <Search class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
@@ -41,7 +78,13 @@
                         </div>
 
                         <div class="px-6 pb-6">
-                            <div class="overflow-x-auto">
+                            <div v-if="loading" class="text-center py-8 text-gray-500">
+                                Loading colleges...
+                            </div>
+                            <div v-else-if="colleges.length === 0" class="text-center py-8 text-gray-500">
+                                No colleges found. Add your first college!
+                            </div>
+                            <div v-else class="overflow-x-auto">
                                 <table class="w-full">
                                     <thead>
                                         <tr class="border-b border-gray-200">
@@ -56,9 +99,12 @@
                                     </thead>
                                     <tbody>
                                         <!--loopable for dynamic data or modified for pagination-->
-                                        <tr class="border-b border-gray-100 hover:bg-gray-50">
-                                            <td class="py-3 px-4 font-mono font-medium text-purple-600">CCS</td>
-                                            <td class="py-3 px-4 font-medium text-gray-900">College of Computer Studies</td>
+                                        <tr
+                                        v-for="college in colleges"
+                                        :key="college.code"
+                                         class="border-b border-gray-100 hover:bg-gray-50">
+                                            <td class="py-3 px-4 font-mono font-medium text-purple-600">{{college.college_code}}</td>
+                                            <td class="py-3 px-4 font-medium text-gray-900">{{college.college_name}}</td>
                                             <td class="py-3 px-4">
                                             <div class="flex items-center justify-center space-x-2">
                                                 <EditButton/>
@@ -139,6 +185,7 @@
                     </div>
                 </div>
             </div>
+            <AddCollegeModal :is-visible="isModalVisible" @close="closeModal" @college-added="handleCollegeAdded"/> 
         </main>
     </div>
 </template>
