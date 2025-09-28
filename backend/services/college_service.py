@@ -76,3 +76,14 @@ class CollegeService:
             
         except Exception as e:
             raise Exception(str(e))
+        
+    def delete_college(self, college_code):
+        """delete a college by code"""
+        try:
+            result = self.supabase.table('colleges').delete().eq('college_code', college_code).execute()
+
+            if not result.data:
+                raise Exception("Failed to delete college")
+            
+        except Exception as e:
+            raise Exception(str(e))

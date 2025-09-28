@@ -51,3 +51,16 @@ def update_college(college_code):
         if 'already exists' in str(e) or 'not found' in str(e):
             return jsonify({'error': str(e)}), 400
         return jsonify({'error': str(e)}), 500
+    
+@colleges_bp.route('/colleges/<string:college_code>', methods=['DELETE'])
+def delete_college(college_code):
+    """Delete a college"""
+    try:
+        result = college_service.delete_college(college_code)
+        return jsonify(result), 200
+        
+    except Exception as e:
+        # Check if it's a not found error (404) or server error (500)
+        if 'not found' in str(e):
+            return jsonify({'error': str(e)}), 404
+        return jsonify({'error': str(e)}), 500
