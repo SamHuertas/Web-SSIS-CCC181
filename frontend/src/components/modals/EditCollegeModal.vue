@@ -84,11 +84,6 @@
   });
 
   const submitCollege = async () => {
-    if (!props.college) {
-      console.error("No college data available");
-      return;
-    }
-    
     errorMessage.value = '';
     isLoading.value = true;
 
@@ -114,7 +109,7 @@
       console.error("Error updating college:", err);
       
       // Handle backend errors (duplicate validation, server errors)
-      errorMessage.value = err.response?.data?.error || 'An error occurred while updatingaa the college.';
+      errorMessage.value = err.response?.data?.error || 'An error occurred while updating the college.';
     } finally {
       isLoading.value = false;
     }

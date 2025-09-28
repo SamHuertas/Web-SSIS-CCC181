@@ -5,11 +5,12 @@
     import { defineProps, onMounted, reactive, ref } from 'vue';
     import AddCollegeModal from '@/components/modals/AddCollegeModal.vue';
     import EditCollegeModal from '@/components/modals/EditCollegeModal.vue';
-
+    import DeleteCollegeModal from '@/components/modals/DeleteCollegeModal.vue';
 
     // modal state
     const isAddModalVisible = ref(false);
     const isEditModalVisible = ref(false);
+    const isDeleteModalVisible = ref(false);
     const selectedCollege = ref(null);
     
     // Modal functions
@@ -29,6 +30,16 @@
     const closeEditModal = () => {
         selectedCollege.value = null;
         isEditModalVisible.value = false;
+    };
+
+    const openDeleteModal = (college) => {
+        selectedCollege.value = { ...college };
+        isDeleteModalVisible.value = true;
+    };
+    
+    const closeDeleteModal = () => {
+        selectedCollege.value = null;
+        isDeleteModalVisible.value = false;
     };
 
     const colleges = ref([]);
@@ -125,7 +136,7 @@
                                             <td class="py-3 px-4">
                                             <div class="flex items-center justify-center space-x-2">
                                                 <EditButton @click="openEditModal(college)"/>
-                                                <DeleteButton/>
+                                                <DeleteButton @click="openDeleteModal(college)"/>
                                             </div>
                                         </td>
                                         </tr>
@@ -204,6 +215,7 @@
             </div>
             <AddCollegeModal :is-visible="isAddModalVisible" @close="closeAddModal" @refreshTable="forceRefresh"/> 
             <EditCollegeModal :is-visible="isEditModalVisible" :college="selectedCollege" @close="closeEditModal" @refreshTable="forceRefresh" />
+            <DeleteCollegeModal :is-visible="isDeleteModalVisible" :college="selectedCollege" @close="closeDeleteModal" @refreshTable="forceRefresh"/>
         </main>
     </div>
 </template>
