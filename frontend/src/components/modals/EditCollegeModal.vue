@@ -2,6 +2,7 @@
   import { watch, reactive, ref, onMounted } from 'vue';
   import { X } from 'lucide-vue-next';
   import axios from 'axios';
+  import CollegeValidator from '@/utils/collegeValidator.js';
 
   // Props
   const props = defineProps({
@@ -19,6 +20,9 @@
   const emit = defineEmits(['close', 'refreshTable']);
 
   const closeModal = () => {
+    errorMessage.value = '';
+    form.college_code = '';
+    form.college_name = '';
     emit('close');
   };
 
@@ -56,7 +60,6 @@
   const isLoading = ref(false);
   const errorMessage = ref('');
 
-  // Function to populate form with college data
   const populateForm = () => {
     if (props.college) {
       form.college_code = props.college.college_code;
@@ -76,7 +79,7 @@
   watch(() => props.isVisible, (isVisible) => {
     if (isVisible) {
       populateForm();
-      errorMessage.value = ''; // Clear errors when opening modal
+      errorMessage.value = ''; 
     }
   });
 
@@ -89,26 +92,29 @@
     errorMessage.value = '';
     isLoading.value = true;
 
-    console.log("Updating college:", {
-      originalCode: props.college.college_code,
-      formData: form
-    });
-
     try {
-      const response = await axios.put(`http://127.0.0.1:8000/colleges/${props.college.college_code}`, form);
+      // Frontend validation and formatting
+      const validation = CollegeValidator.validateAndFormatCollege(form);
+      
+      if (!validation.isValid) {
+        errorMessage.value = validation.error;
+        isLoading.value = false;
+        return;
+      }
+
+      // Send formatted data to backend for duplicate checking and DB operations
+      const response = await axios.put(`http://127.0.0.1:8000/colleges/${props.college.college_code}`, validation.formattedData);
       console.log("College updated successfully:", response.data);
       emit('refreshTable');
+      form.college_code = '';
+      form.college_name = '';
       closeModal();
+
     } catch (err) {
       console.error("Error updating college:", err);
-      console.error("Error response:", err.response?.data);
-      if (err.response?.status === 404) {
-        errorMessage.value = 'College not found. It may have been deleted.';
-      } else if (err.response?.data?.error) {
-        errorMessage.value = err.response.data.error;
-      } else {
-        errorMessage.value = 'An error occurred while updating the college.';
-      }
+      
+      // Handle backend errors (duplicate validation, server errors)
+      errorMessage.value = err.response?.data?.error || 'An error occurred while updatingaa the college.';
     } finally {
       isLoading.value = false;
     }
