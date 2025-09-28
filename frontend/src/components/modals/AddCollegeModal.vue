@@ -1,7 +1,8 @@
 <script setup>
-  import { watch, reactive } from 'vue';
+  import { watch, reactive, ref } from 'vue';
   import { X } from 'lucide-vue-next';
   import axios from 'axios';
+  import CollegeValidator from '@/utils/collegeValidator.js';
 
   // Props
   const props = defineProps({
@@ -15,6 +16,10 @@
   const emit = defineEmits(['close', 'refreshTable']);
 
   const closeModal = () => {
+    // Clear error message and reset form when closing
+    errorMessage.value = '';
+    form.college_code = '';
+    form.college_name = '';
     emit('close');
   };
 
@@ -49,19 +54,42 @@
     college_name: ''
   });
 
+  const errorMessage = ref('');
+  const isLoading = ref(false);
+
+
   const submitCollege = async () => {
-  try {
-    const response = await axios.post("http://127.0.0.1:8000/colleges", form)
-    console.log("College added:", response.data)
-    emit('refreshTable');
-  } catch (err) {
-    console.error("Error adding college:", err)
-  } finally {
-    form.college_code = ''
-    form.college_name = ''
-    closeModal();
-  }
-}
+    errorMessage.value = '';
+    isLoading.value = true;
+
+    try {
+      const validation = CollegeValidator.validateAndFormatCollege(form);
+      
+      if (!validation.isValid) {
+        errorMessage.value = validation.error;
+        isLoading.value = false;
+        return;
+      }
+
+      // Send formatted data to backend for duplicate checking and DB operations
+      const response = await axios.post("http://127.0.0.1:8000/colleges", validation.formattedData);
+      console.log("College added:", response.data);
+      
+      // Success - refresh table and close modal
+      emit('refreshTable');
+      form.college_code = '';
+      form.college_name = '';
+      closeModal();
+      
+    } catch (err) {
+      console.error("Error adding college:", err);
+      
+      // Handle backend errors (duplicate validation, server errors)
+      errorMessage.value = err.response?.data?.error || 'An error occurred while adding the college.';
+    } finally {
+      isLoading.value = false;
+    }
+  };
   
 </script>
 
@@ -87,6 +115,10 @@
                     <X class="h-5 w-5" />
                 </button>
             </div>
+            
+            <div v-if="errorMessage" class="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+              <p class="text-sm text-red-600">{{ errorMessage }}</p>
+            </div>
 
             <form @submit.prevent="submitCollege" class="space-y-4">
                 <div class="grid grid-cols-1 gap-4">
@@ -97,7 +129,8 @@
                         id="collegecode"
                         type="text"
                         required
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 sm:text-sm"
+                        :disabled="isLoading"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 sm:text-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
                         placeholder="e.g. CCS"
                         />
                     </div>
@@ -110,7 +143,8 @@
                         id="collegename"
                         type="text"
                         required
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 sm:text-sm"
+                        :disabled="isLoading"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 sm:text-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
                         placeholder="e.g. College of Computer Studies"
                         />
                     </div>
@@ -120,15 +154,18 @@
                     <button
                         type="button"
                         @click="closeModal"
-                        class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-900 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
+                        :disabled="isLoading"
+                        class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-900 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors disabled:bg-gray-100 disabled:cursor-not-allowed"
                     >
                         Cancel
                     </button>
                     <button
                         type="submit"
-                        class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
+                        :disabled="isLoading"
+                        class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors disabled:bg-green-400 disabled:cursor-not-allowed"
                     >
-                        Add College
+                        <span v-if="isLoading">Adding...</span>
+                        <span v-else>Add College</span>
                     </button>
                 </div>
             </form>
