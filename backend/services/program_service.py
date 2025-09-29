@@ -47,7 +47,7 @@ class ProgramService:
     def get_all_programs(self):
         """Get all programs"""
         try:
-            result = self.supabase.table('programs').select('program_code, program_name, college_code').execute()
+            result = self.supabase.table('programs').select('program_code, program_name, college_code, colleges(college_name)').execute()
             return result.data
         except Exception as e:
             raise Exception(f"Error fetching programs: {str(e)}")
