@@ -5,10 +5,12 @@
     import { onMounted, ref } from 'vue';
     import AddProgramModal from '@/components/modals/AddProgramModal.vue';
     import EditProgramModal from '@/components/modals/EditProgramModal.vue';
+    import DeleteProgramModal from '@/components/modals/DeleteProgramModal.vue';
 
     // modal state
     const isAddModalVisible = ref(false);
     const isEditModalVisible = ref(false);
+    const isDeleteModalVisible = ref(false);
     const selectedProgram = ref(null);
 
     // Modal functions
@@ -28,6 +30,16 @@
     const closeEditModal = () => {
         selectedProgram.value = null;
         isEditModalVisible.value = false;
+    };
+
+    const openDeleteModal = (program) => {
+        selectedProgram.value = { ...program };
+        isDeleteModalVisible.value = true;
+    };
+    
+    const closeDeleteModal = () => {
+        selectedProgram.value = null;
+        isDeleteModalVisible.value = false;
     };
 
     const programs = ref([]);
@@ -120,7 +132,7 @@
                                         <td class="py-3 px-4">
                                             <div class="flex items-center justify-center space-x-2">
                                                 <EditButton @click="openEditModal(program)"/>
-                                                <DeleteButton/>
+                                                <DeleteButton @click="openDeleteModal(program)"/>
                                             </div>
                                         </td>
                                     </tr>
@@ -199,6 +211,7 @@
         </div>
         <AddProgramModal :is-visible="isAddModalVisible" @close="closeAddModal" @refreshTable="forceRefresh"/> 
         <EditProgramModal :is-visible="isEditModalVisible" :program="selectedProgram" @close="closeEditModal" @refreshTable="forceRefresh" />
+        <DeleteProgramModal :is-visible="isDeleteModalVisible" :program="selectedProgram" @close="closeDeleteModal" @refreshTable="forceRefresh" />
     </main>
     </div>
 </template>
