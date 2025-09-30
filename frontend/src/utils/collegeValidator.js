@@ -45,8 +45,8 @@ export class CollegeValidator {
     }
 
     // Only allow letters, spaces, and hyphens
-    if (!/^[A-Za-z\s\-]+$/.test(cleanName)) {
-      return { isValid: false, error: 'College name can only contain letters, spaces, and hyphens' };
+    if (!/^[A-Za-z\s\-,]+$/.test(cleanName)) {
+      return { isValid: false, error: 'College name can only contain letters, spaces, commas, and hyphens' };
     }
 
     return { isValid: true, error: null };
