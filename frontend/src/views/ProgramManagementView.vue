@@ -2,7 +2,7 @@
     import { GraduationCap, Plus, Search } from 'lucide-vue-next';
     import EditButton from '@/components/EditButton.vue';
     import DeleteButton from '@/components/DeleteButton.vue';
-    import { onMounted, ref } from 'vue';
+    import { onMounted, ref, computed } from 'vue';
     import AddProgramModal from '@/components/modals/AddProgramModal.vue';
     import EditProgramModal from '@/components/modals/EditProgramModal.vue';
     import DeleteProgramModal from '@/components/modals/DeleteProgramModal.vue';
@@ -44,6 +44,26 @@
 
     const programs = ref([]);
     const loading = ref(true);
+    const searchTerm = ref('');
+
+    // Pagination state
+    const currentPage = ref(1);
+    const itemsPerPage = ref(5);
+
+    // Sorting state
+    const sortField = ref('college_code')
+    const sortDirection = ref('asc')
+
+    const handleSort = (field) => {
+        if (sortField.value === field) {
+            sortDirection.value = sortDirection.value === 'asc' ? 'desc' : 'asc'
+        } else {
+            sortField.value = field
+            sortDirection.value = 'asc'
+        }
+        // Reset to first page when sorting
+        currentPage.value = 1;
+    }
 
     const fetchPrograms = async () => {
         try{
@@ -62,86 +82,225 @@
 
     const forceRefresh = () => {
         fetchPrograms();
+        currentPage.value = 1; // Reset to first page on refresh
     }
+
+    // sorted and filtered programs
+    const filteredAndSortedPrograms = computed(() => {
+        let filtered = programs.value;
+        
+        // Apply search filter
+        if (searchTerm.value) {
+            const term = searchTerm.value.toLowerCase();
+            filtered = filtered.filter(college => 
+                college.program_code.toLowerCase().includes(term) ||
+                college.program_name.toLowerCase().includes(term)
+            );
+        }
+        
+        // Apply sorting
+        return [...filtered].sort((a, b) => {
+            const aValue = a[sortField.value];
+            const bValue = b[sortField.value];
+            
+            if (sortDirection.value === 'asc') {
+                return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+            } else {
+                return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+            }
+        });
+    });
+
+    // Pagination
+    const totalPages = computed(() => {
+        return Math.ceil(filteredAndSortedPrograms.value.length / itemsPerPage.value);
+    });
+
+    const paginatedPrograms = computed(() => {
+        const startIndex = (currentPage.value - 1) * itemsPerPage.value;
+        const endIndex = startIndex + itemsPerPage.value;
+        return filteredAndSortedPrograms.value.slice(startIndex, endIndex);
+    });
+
+    const startItem = computed(() => {
+        return (currentPage.value - 1) * itemsPerPage.value + 1;
+    });
+
+    const endItem = computed(() => {
+        const end = currentPage.value * itemsPerPage.value;
+        return end > filteredAndSortedPrograms.value.length ? filteredAndSortedPrograms.value.length : end;
+    });
+
+    // Pagination functions
+    const goToPage = (page) => {
+        if (page >= 1 && page <= totalPages.value) {
+            currentPage.value = page;
+        }
+    };
+
+    const nextPage = () => {
+        if (currentPage.value < totalPages.value) {
+            currentPage.value++;
+        }
+    };
+
+    const prevPage = () => {
+        if (currentPage.value > 1) {
+            currentPage.value--;
+        }
+    };
+
+    // Generate page numbers for pagination buttons
+    const pageNumbers = computed(() => {
+        const pages = [];
+        const total = totalPages.value;
+        const current = currentPage.value;
+        
+        if (total <= 7) {
+            // Show all pages if total pages is small
+            for (let i = 1; i <= total; i++) {
+                pages.push(i);
+            }
+        } else {
+            // Show pages with ellipsis for larger sets
+            if (current <= 4) {
+                for (let i = 1; i <= 5; i++) pages.push(i);
+                pages.push('...');
+                pages.push(total);
+            } else if (current >= total - 3) {
+                pages.push(1);
+                pages.push('...');
+                for (let i = total - 4; i <= total; i++) pages.push(i);
+            } else {
+                pages.push(1);
+                pages.push('...');
+                for (let i = current - 1; i <= current + 1; i++) pages.push(i);
+                pages.push('...');
+                pages.push(total);
+            }
+        }
+        return pages;
+    });
+
+    // Reset to first page when search term changes
+    const handleSearch = () => {
+        currentPage.value = 1;
+    };
 </script>
 
 <template>
     <div class="flex-1 flex flex-col overflow-hidden">
       <main class="flex-1 overflow-auto p-6">
-        <div class="bg-white rounded-lg shadow h-full p-6 space-y-6 w-full">
-            <div class="space-y-6">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-2">
-                        <graduation-cap class="h-8 w-8 text-green-500"/>
-                        Programs
-                        </h1>
-                        <p class="text-gray-600 mt-2">Manage academic programs</p>
+        <!-- Main white container that always fills screen but extends when needed -->
+        <div class="bg-white rounded-lg shadow p-6 w-full  flex flex-col">
+                <div class="space-y-6 flex-1 flex flex-col">
+
+                    <!-- Header Section -->
+                    <div class="flex items-center justify-between flex-shrink-0">
+                        <div>
+                            <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-2">
+                            <graduation-cap class="h-8 w-8 text-green-500"/>
+                            Programs
+                            </h1>
+                            <p class="text-gray-600 mt-2">Manage academic programs</p>
+                        </div>
+                    
+                        <button @click="openAddModal" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                            <Plus class="mr-2 h-4 w-4"/>
+                            Add Program
+                        </button>
                     </div>
                 
-                    <button @click="openAddModal" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                        <Plus class="mr-2 h-4 w-4"/>
-                        Add Program
-                    </button>
-                </div>
+                    <!-- Table Container - This will expand to fill space -->
+                    <div class="bg-white border border-gray-200 rounded-lg shadow-sm flex-1 flex flex-col">
 
-                <div class="bg-white border border-gray-200 rounded-lg shadow-sm">
-                    <div class="p-6 pb-4">
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-lg font-semibold text-gray-900">Academic Programs (4)</h3>
-                            <div class="flex items-center space-x-2">
-                                <div class="relative">
-                                    <Search class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4"/>
-                                    <input
-                                        v-model="searchTerm"
-                                        type="text"
-                                        placeholder="Search programs..."
-                                        class="pl-10 w-64 px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
-                                    />
+                        <!-- Search Section -->
+                        <div class="p-6 pb-4 flex-shrink-0">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-lg font-semibold text-gray-900">Academic Programs ({{filteredAndSortedPrograms.length}})</h3>
+                                <div class="flex items-center space-x-4">
+                                    <div class="relative">
+                                        <Search class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4"/>
+                                        <input
+                                            v-model="searchTerm"
+                                            @input="handleSearch"
+                                            type="text"
+                                            placeholder="Search by code or name..."
+                                            class="pl-10 w-64 px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"/>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="px-6 pb-6">
-                        <div class="overflow-x-auto">
-                            <table class="w-full">
-                                <thead>
-                                    <tr class="border-b border-gray-200">
-                                        <th class="text-left py-3 px-4 font-medium text-gray-600 cursor-pointer hover:bg-gray-50"> Code </th>
-                                        <th class="text-left py-3 px-4 font-medium text-gray-600 cursor-pointer hover:bg-gray-50"> Program Name </th>
-                                        <th class="text-left py-3 px-4 font-medium text-gray-600 cursor-pointer hover:bg-gray-50"> College </th>
-                                        <th class="text-center py-3 px-4 font-medium text-gray-600">Actions</th>
-                                    </tr>
-                                </thead>
+                        <!-- Table Section - Scrollable area -->
+                        <div class="px-6 pb-4 flex-1 overflow-hidden">
+                            <div v-if="loading" class="text-center py-8 text-gray-500 h-full flex items-center justify-center">
+                                Loading programs...
+                            </div>
+                            <div v-else-if="programs.length === 0" class="text-center py-8 text-gray-500 h-full flex items-center justify-center">
+                                No programs found. Add your first program!
+                            </div>
+                            <div v-else class="h-full flex flex-col">
+                                <!-- Scrollable table container -->
+                                 <div class="overflow-auto flex-1">
+                                    <table class="w-full">
+                                        <colgroup>
+                                            <col class="w-1/4"> 
+                                            <col class="w-2/4">
+                                            <col class="w-1/4">
+                                            <col class="w-1/4">
+                                        </colgroup>
 
-                                <tbody>
-                                    <!--loopable for dynamic data or modified for pagination-->
-                                    <tr 
-                                    v-for="program in programs"
-                                    :key="program.program_code"
-                                    class="border-b border-gray-100 hover:bg-gray-50">
-                                        <td class="py-3 px-4 font-mono font-medium text-green-600">{{ program.program_code }}</td>
-                                        <td class="py-3 px-4 font-medium text-gray-900">{{ program.program_name }}</td>
-                                        <td class="py-3 px-4">
-                                            <div>
-                                                <div class="font-medium">{{program.college_code}}</div>
-                                                <div class="text-sm text-gray-500">{{program.colleges.college_name}}</div>
-                                            </div>
-                                        </td>
-                                        <td class="py-3 px-4">
-                                            <div class="flex items-center justify-center space-x-2">
-                                                <EditButton @click="openEditModal(program)"/>
-                                                <DeleteButton @click="openDeleteModal(program)"/>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                            <!-- if no data searched 
-                            <div v-if="paginatedStudents.length === 0" class="text-center py-8 text-gray-500">
+                                        <thead>
+                                            <tr class="border-b border-gray-200">
+                                                <th 
+                                                    @click="handleSort('program_code')" 
+                                                    class="text-left py-3 px-4 font-medium text-gray-600 cursor-pointer hover:bg-gray-50"
+                                                > Code 
+                                                    <span v-if="sortField === 'college_code'">
+                                                    {{ sortDirection === 'asc' ? '↑' : '↓' }}
+                                                    </span>
+                                                </th>
+                                                <th 
+                                                    @click="handleSort('program_code')" 
+                                                    class="text-left py-3 px-4 font-medium text-gray-600 cursor-pointer hover:bg-gray-50"
+                                                > Program Name 
+                                                    <span v-if="sortField === 'college_code'">
+                                                    {{ sortDirection === 'asc' ? '↑' : '↓' }}
+                                                    </span>
+                                                </th>
+                                                <th class="text-left py-3 px-4 font-medium text-gray-600 cursor-pointer hover:bg-gray-50"> College </th>
+                                                <th class="text-center py-3 px-4 font-medium text-gray-600">Actions</th>
+                                            </tr>
+                                        </thead>
+
+                                        <tbody>
+                                            <!--loopable for dynamic data or modified for pagination-->
+                                            <tr 
+                                            v-for="program in paginatedPrograms"
+                                            :key="program.program_code"
+                                            class="border-b border-gray-100 hover:bg-gray-50">
+                                                <td class="py-3 px-4 font-mono font-medium text-green-600">{{ program.program_code }}</td>
+                                                <td class="py-3 px-4 font-medium text-gray-900">{{ program.program_name }}</td>
+                                                <td class="py-3 px-4">
+                                                    <div>
+                                                        <div class="font-medium">{{program.college_code}}</div>
+                                                        <div class="text-sm text-gray-500">{{program.colleges.college_name}}</div>
+                                                    </div>
+                                                </td>
+                                                <td class="py-3 px-4">
+                                                    <div class="flex items-center justify-center space-x-2">
+                                                        <EditButton @click="openEditModal(program)"/>
+                                                        <DeleteButton @click="openDeleteModal(program)"/>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            <div v-if="filteredAndSortedPrograms.length === 0 && programs.length > 0" class="text-center py-8 text-gray-500">
                                 No programs found matching your search.
-                            </div> -->
+                            </div> 
                         </div>
                     </div>
 
@@ -150,7 +309,7 @@
                         <div class="flex items-center justify-between px-6 py-4">
                             <div class="flex items-center text-sm text-gray-700">
                                 <span>
-                                Showing 1 to 10 of 100 results
+                                Showing {{ startItem }} to {{ endItem }} of {{ filteredAndSortedPrograms.length }} results
                                 </span>
                             </div>
 
@@ -168,7 +327,7 @@
 
                                 <div class="flex items-center space-x-1">
                                     <button
-                                        @click="currentPage = currentPage - 1"
+                                        @click="prevPage"
                                         :disabled="currentPage === 1"
                                         :class="[
                                         'px-3 py-1.5 text-sm font-medium rounded-md border transition-colors',
@@ -180,18 +339,25 @@
                                         Previous
                                     </button>
                                     
-                                    <div>
-                                        <button
-                                        class="
-                                            px-3 py-1.5 text-sm font-medium rounded-md border transition-colors text-white bg-green-600 border-green-600 shadow-sm"
-                                        >
-                                        1
-                                        </button>
-                                        <span class="px-2 py-1.5 text-sm text-gray-500">...</span>
-                                    </div>
+                                    <button
+                                        v-for="page in pageNumbers"
+                                        :key="page"
+                                        @click="page !== '...' && goToPage(page)"
+                                        :class="[
+                                        'px-3 py-1.5 text-sm font-medium rounded-md border transition-colors',
+                                        page === '...'
+                                            ? 'text-gray-500 bg-white border-gray-300 cursor-default'
+                                            : page === currentPage
+                                            ? 'text-white bg-green-600 border-green-600 shadow-sm'
+                                            : 'text-gray-700 bg-white border-gray-300 hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500'
+                                        ]"
+                                        :disabled="page === '...'"
+                                    >
+                                        {{ page }}
+                                    </button>
 
                                     <button
-                                        @click="currentPage = currentPage + 1"
+                                        @click="nextPage"
                                         :disabled="currentPage === totalPages"
                                         :class="[
                                         'px-3 py-1.5 text-sm font-medium rounded-md border transition-colors',
