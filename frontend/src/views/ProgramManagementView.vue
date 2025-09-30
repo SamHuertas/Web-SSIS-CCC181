@@ -2,6 +2,55 @@
     import { GraduationCap, Plus, Search } from 'lucide-vue-next';
     import EditButton from '@/components/EditButton.vue';
     import DeleteButton from '@/components/DeleteButton.vue';
+    import { onMounted, ref } from 'vue';
+    import AddProgramModal from '@/components/modals/AddProgramModal.vue';
+    import EditProgramModal from '@/components/modals/EditProgramModal.vue';
+
+    // modal state
+    const isAddModalVisible = ref(false);
+    const isEditModalVisible = ref(false);
+    const selectedProgram = ref(null);
+
+    // Modal functions
+    const openAddModal = () => {
+        isAddModalVisible.value = true;
+    };
+
+    const closeAddModal = () => {
+        isAddModalVisible.value = false;
+    };
+
+    const openEditModal = (program) => {
+        selectedProgram.value = { ...program };
+        isEditModalVisible.value = true;
+    };
+    
+    const closeEditModal = () => {
+        selectedProgram.value = null;
+        isEditModalVisible.value = false;
+    };
+
+    const programs = ref([]);
+    const loading = ref(true);
+
+    const fetchPrograms = async () => {
+        try{
+            const res = await fetch("http://127.0.0.1:8000/programs");
+            const data = await res.json();
+            programs.value = data;
+            console.log(programs)
+        } catch (err) {
+            console.error("Error fetching programs:", err);
+        } finally {
+            loading.value = false;
+        }
+    }
+
+    onMounted(fetchPrograms);
+
+    const forceRefresh = () => {
+        fetchPrograms();
+    }
 </script>
 
 <template>
@@ -18,8 +67,7 @@
                         <p class="text-gray-600 mt-2">Manage academic programs</p>
                     </div>
                 
-                    <button
-                        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                    <button @click="openAddModal" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
                         <Plus class="mr-2 h-4 w-4"/>
                         Add Program
                     </button>
@@ -57,18 +105,21 @@
 
                                 <tbody>
                                     <!--loopable for dynamic data or modified for pagination-->
-                                    <tr class="border-b border-gray-100 hover:bg-gray-50">
-                                        <td class="py-3 px-4 font-mono font-medium text-green-600">BSCS</td>
-                                        <td class="py-3 px-4 font-medium text-gray-900">Bachelor of Science in Computer Science</td>
+                                    <tr 
+                                    v-for="program in programs"
+                                    :key="program.program_code"
+                                    class="border-b border-gray-100 hover:bg-gray-50">
+                                        <td class="py-3 px-4 font-mono font-medium text-green-600">{{ program.program_code }}</td>
+                                        <td class="py-3 px-4 font-medium text-gray-900">{{ program.program_name }}</td>
                                         <td class="py-3 px-4">
                                             <div>
-                                                <div class="font-medium">CCS</div>
-                                                <div class="text-sm text-gray-500">College of Computer Studies</div>
+                                                <div class="font-medium">{{program.college_code}}</div>
+                                                <div class="text-sm text-gray-500">{{program.colleges.college_name}}</div>
                                             </div>
                                         </td>
                                         <td class="py-3 px-4">
                                             <div class="flex items-center justify-center space-x-2">
-                                                <EditButton/>
+                                                <EditButton @click="openEditModal(program)"/>
                                                 <DeleteButton/>
                                             </div>
                                         </td>
@@ -146,6 +197,8 @@
                 </div>
             </div>
         </div>
+        <AddProgramModal :is-visible="isAddModalVisible" @close="closeAddModal" @refreshTable="forceRefresh"/> 
+        <EditProgramModal :is-visible="isEditModalVisible" :program="selectedProgram" @close="closeEditModal" @refreshTable="forceRefresh" />
     </main>
     </div>
 </template>
