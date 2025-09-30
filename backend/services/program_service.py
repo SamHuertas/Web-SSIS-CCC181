@@ -64,8 +64,10 @@ class ProgramService:
                 raise Exception(f"Program code '{new_code}' already exists")
             
             # Check for duplicate name
-            if self.check_duplicate_name(new_name):
-                raise Exception(f"Program name '{new_name}' already exists")
+            current = self.supabase.table('programs').select('program_name').eq('program_code', original_code).execute()
+            if current.data and new_name != current.data[0]['program_name']:
+                if self.check_duplicate_name(new_name):
+                    raise Exception(f"Program name '{new_name}' already exists")
             
             # Update the program
             result = self.supabase.table('programs').update(program_data).eq('program_code', original_code).execute()

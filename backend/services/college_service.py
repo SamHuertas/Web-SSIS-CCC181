@@ -63,8 +63,10 @@ class CollegeService:
                 raise Exception(f"College code '{new_code}' already exists")
             
             # Check for duplicate name
-            if self.check_duplicate_name(new_name):
-                raise Exception(f"College name '{new_name}' already exists")
+            current = self.supabase.table('colleges').select('college_name').eq('college_code', original_code).execute()
+            if current.data and new_name != current.data[0]['college_name']:
+                if self.check_duplicate_name(new_name):
+                    raise Exception(f"College name '{new_name}' already exists")
             
             # Update the college
             result = self.supabase.table('colleges').update(college_data).eq('college_code', original_code).execute()
