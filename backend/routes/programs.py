@@ -1,12 +1,8 @@
 from flask import Blueprint, request, jsonify
-from utils import SupabaseManager
 from services.program_service import ProgramService
 
 programs_bp = Blueprint('programs', __name__)
-
-supabase_manager = SupabaseManager()
-supabase = supabase_manager.get_client()
-program_service = ProgramService(supabase)
+program_service = ProgramService()
 
 @programs_bp.route('/programs', methods=['GET'])
 def get_programs():

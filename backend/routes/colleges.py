@@ -1,12 +1,8 @@
 from flask import Blueprint, request, jsonify
-from utils import SupabaseManager
 from services.college_service import CollegeService
 
 colleges_bp = Blueprint('colleges', __name__)
-
-supabase_manager = SupabaseManager()
-supabase = supabase_manager.get_client()
-college_service = CollegeService(supabase)
+college_service = CollegeService()
 
 @colleges_bp.route('/colleges', methods=['GET'])
 def get_colleges():

@@ -1,91 +1,57 @@
-from supabase import Client
+from db import get_connection
+from psycopg2 import errors as pg_errors
 
 class CollegeService:
-    def __init__(self, supabase: Client):
-        self.supabase = supabase
-
-    def check_duplicate_code(self, college_code):
-        """Check if college code already exists"""
-        try:
-            result = self.supabase.table('colleges').select('college_code').eq('college_code', college_code).execute()
-            return len(result.data) > 0
-        except Exception as e:
-            raise Exception(f"Error checking duplicate code: {str(e)}")
-
-    def check_duplicate_name(self, college_name):
-        """Check if college name already exists"""
-        try:
-            result = self.supabase.table('colleges').select('college_name').eq('college_name', college_name).execute()
-            return len(result.data) > 0
-        except Exception as e:
-            raise Exception(f"Error checking duplicate name: {str(e)}")
-
-    def create_college(self, college_data):
-        """Create a new college with duplicate checking"""
-        try:
-            college_code = college_data['college_code']
-            college_name = college_data['college_name']
-
-            # Check for duplicates
-            if self.check_duplicate_code(college_code):
-                raise Exception(f"College code '{college_code}' already exists")
-            
-            if self.check_duplicate_name(college_name):
-                raise Exception(f"College name '{college_name}' already exists")
-            
-            # Insert the college
-            result = self.supabase.table('colleges').insert(college_data).execute()
-            
-            if not result.data:
-                raise Exception("Failed to create college")
-            
-            return result.data[0]
-            
-        except Exception as e:
-            raise Exception(str(e))
-
     def get_all_colleges(self):
         """Get all colleges"""
+        with get_connection() as conn, conn.cursor() as cur:
+            cur.execute("""
+                SELECT college_code, college_name
+                FROM colleges;
+            """)
+            return cur.fetchall()
+
+    def create_college(self, college_data):
+        """Create a new college"""
         try:
-            result = self.supabase.table('colleges').select('college_code, college_name').execute()
-            return result.data
-        except Exception as e:
-            raise Exception(f"Error fetching colleges: {str(e)}")
+            with get_connection() as conn, conn.cursor() as cur:
+                cur.execute("""
+                    INSERT INTO colleges (college_code, college_name)
+                    VALUES (%s, %s)
+                    RETURNING college_code, college_name;
+                """, (college_data['college_code'], college_data['college_name']))
+                return cur.fetchone()
+        except pg_errors.UniqueViolation:
+            raise Exception(f"College code '{college_data['college_code']}' already exists")
 
     def update_college(self, original_code, college_data):
-        """Update a college with duplicate checking"""
+        """Update a college"""
         try:
-            new_code = college_data['college_code']
-            new_name = college_data['college_name']
-
-            # Check for duplicate code (if code is being changed)
-            if new_code != original_code and self.check_duplicate_code(new_code):
-                raise Exception(f"College code '{new_code}' already exists")
-            
-            # Check for duplicate name
-            current = self.supabase.table('colleges').select('college_name').eq('college_code', original_code).execute()
-            if current.data and new_name != current.data[0]['college_name']:
-                if self.check_duplicate_name(new_name):
-                    raise Exception(f"College name '{new_name}' already exists")
-            
-            # Update the college
-            result = self.supabase.table('colleges').update(college_data).eq('college_code', original_code).execute()
-            
-            if not result.data:
-                raise Exception("Failed to update college")
-            
-            return result.data[0]
-            
-        except Exception as e:
-            raise Exception(str(e))
-        
+            with get_connection() as conn, conn.cursor() as cur:
+                cur.execute("""
+                    UPDATE colleges
+                    SET college_code = %s, college_name = %s
+                    WHERE college_code = %s
+                    RETURNING college_code, college_name;
+                """, (college_data['college_code'], college_data['college_name'], original_code))
+                
+                result = cur.fetchone()
+                if not result:
+                    raise Exception(f"College with code '{original_code}' not found")
+                return result
+        except pg_errors.UniqueViolation:
+            raise Exception(f"College code '{college_data['college_code']}' already exists")
+    
     def delete_college(self, college_code):
-        """delete a college by code"""
-        try:
-            result = self.supabase.table('colleges').delete().eq('college_code', college_code).execute()
-
-            if not result.data:
-                raise Exception("Failed to delete college")
+        """Delete a college"""
+        with get_connection() as conn, conn.cursor() as cur:
+            cur.execute("""
+                DELETE FROM colleges
+                WHERE college_code = %s
+                RETURNING college_code, college_name;
+            """, (college_code,))
             
-        except Exception as e:
-            raise Exception(str(e))
+            result = cur.fetchone()
+            if not result:
+                raise Exception(f"College with code '{college_code}' not found")
+            return result
