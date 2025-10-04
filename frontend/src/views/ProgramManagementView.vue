@@ -323,7 +323,10 @@
                             <div class="flex items-center space-x-4">
                                 <div class="flex items-center space-x-2">
                                     <label for="itemsPerPage" class="text-sm text-gray-700">Show:</label>
-                                    <select class="px-3 py-1.5 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
+                                    <select 
+                                        v-model="itemsPerPage"
+                                        @change="currentPage = 1"
+                                        class="px-3 py-1.5 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
                                     >
                                         <option :value="5">5</option>
                                         <option :value="10">10</option>
