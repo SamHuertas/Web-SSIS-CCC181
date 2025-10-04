@@ -1,16 +1,62 @@
 from flask import Blueprint, request, jsonify
-from utils import SupabaseManager
+from services.student_service import StudentService 
 
 students_bp = Blueprint('students', __name__)
-
-supabase_manager = SupabaseManager()
-supabase = supabase_manager.get_client()
+student_service = StudentService()
 
 @students_bp.route('/students', methods=['GET'])
 def get_students():
     """Get all students"""
     try:
-        result = supabase.table('students').select('id_number, first_name, last_name, program_code, year_level, gender').execute()
-        return jsonify(result.data)
+        result = student_service.get_all_students()
+        return jsonify(result)
     except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    
+@students_bp.route('/students', methods=['POST'])
+def add_student():
+    """Add a new student"""
+    try:
+        data = request.json
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+
+        # Service handles all business logic and duplicate checking
+        student = student_service.create_student(data)
+        return jsonify(student), 201
+
+    except Exception as e:
+        # Check if it's a duplicate error (400) or server error (500)
+        if 'already exists' in str(e):
+            return jsonify({'error': str(e)}), 400
+        return jsonify({'error': str(e)}), 500
+    
+@students_bp.route('/students/<string:student_id>', methods=['PUT'])
+def update_student(student_id):
+    """Update a student"""
+    try:
+        data = request.json
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+        
+        student = student_service.update_student(student_id, data)
+        return jsonify(student), 200
+        
+    except Exception as e:
+        # Check if it's a duplicate error (400) or server error (500)
+        if 'already exists' in str(e) or 'not found' in str(e):
+            return jsonify({'error': str(e)}), 400
+        return jsonify({'error': str(e)}), 500
+    
+@students_bp.route('/students/<string:student_id>', methods=['DELETE'])
+def delete_student(student_id):
+    """Delete a student"""
+    try:
+        result = student_service.delete_student(student_id)
+        return jsonify(result), 200
+        
+    except Exception as e:
+        # Check if it's a not found error (404) or server error (500)
+        if 'not found' in str(e):
+            return jsonify({'error': str(e)}), 404
         return jsonify({'error': str(e)}), 500
