@@ -155,6 +155,7 @@ const fetchPrograms = async () => {
                     id="idnumber"
                     type="text"
                     required
+                    :disabled="isLoading"
                     class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 sm:text-sm"
                     placeholder="Enter ID number"
                     />
@@ -167,6 +168,7 @@ const fetchPrograms = async () => {
                         id="firstname"
                         type="text"
                         required
+                        :disabled="isLoading"
                         class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 sm:text-sm"
                         placeholder="Enter first name"
                         />
@@ -178,6 +180,7 @@ const fetchPrograms = async () => {
                         id="lastname"
                         type="text"
                         required
+                        :disabled="isLoading"
                         class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 sm:text-sm"
                         placeholder="Enter last name"
                         />
@@ -189,6 +192,7 @@ const fetchPrograms = async () => {
                         v-model="form.program_code"
                         id="program"
                         required
+                        :disabled="isLoading"
                         class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 sm:text-sm"
                     >
                         <option value="" disabled selected>Select a program</option>
@@ -204,6 +208,7 @@ const fetchPrograms = async () => {
                         v-model="form.year_level"
                         id="year"
                         required
+                        :disabled="isLoading"
                         class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 sm:text-sm"
                         >
                         <option value="" disabled selected>Select a year level</option>
@@ -221,6 +226,7 @@ const fetchPrograms = async () => {
                         v-model="form.gender"
                         id="gender"
                         required
+                        :disabled="isLoading"
                         class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 sm:text-sm"
                         >
                         <option value="" disabled selected>Select a gender</option>

@@ -174,6 +174,7 @@
                         id="collegecode"
                         v-model="form.college_code"
                         required
+                        :disabled="isLoading"
                         class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 sm:text-sm"
                     >
                         <option value="" disabled selected>Select a college</option>
