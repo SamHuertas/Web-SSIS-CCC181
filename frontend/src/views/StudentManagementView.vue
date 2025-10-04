@@ -6,32 +6,38 @@
     import AddStudentModal from '@/components/modals/AddStudentModal.vue';
 
     // modal state
-    const isModalVisible = ref(false);
+    const isAddModalVisible = ref(false);
     
     // Modal functions
-    const openModal = () => {
-        isModalVisible.value = true;
+    const openAddModal = () => {
+        isAddModalVisible.value = true;
     };
     
-    const closeModal = () => {
-        isModalVisible.value = false;
+    const closeAddModal = () => {
+        isAddModalVisible.value = false;
     };
 
     const students = ref([]);
     const loading = ref(true);
 
-    onMounted(async () => {
-  try {
-    const res = await fetch("http://127.0.0.1:8000/students");
-    const data = await res.json();
-    console.log(students)
-    students.value = Array.isArray(data) ? data : [];
-  } catch (err) {
-    console.error("Error fetching students:", err);
-  } finally {
-    loading.value = false;
-  }
-});
+    const fetchStudents = async () => {
+        try{
+            const res = await fetch("http://127.0.0.1:8000/students");
+            const data = await res.json();
+            students.value = data;
+            console.log(students)
+        } catch (err) {
+            console.error("Error fetching students:", err);
+        } finally {
+            loading.value = false;
+        }
+    }
+
+    onMounted(fetchStudents);
+
+    const forceRefresh = () => {
+        fetchPrograms();
+    }
 </script>
 
 <template>
@@ -48,7 +54,7 @@
                         <p class="text-gray-600 mt-2">Manage student records</p>
                     </div>
                     
-                    <button @click="openModal"
+                    <button @click="openAddModal"
                         class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
                         <Plus class="mr-2 h-4 w-4"/>
                         Add Student
@@ -120,8 +126,10 @@
                                     <td class="py-3 px-4 text-center">
                                         <span :class="[
                                             'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium',
-                                            student.gender === 'male' ? 'bg-blue-100 text-blue-800' :
-                                            student.gender === 'female' ? 'bg-pink-100 text-pink-800' :
+                                            student.gender === 'Male' ? 'bg-blue-100 text-blue-800' :
+                                            student.gender === 'Female' ? 'bg-pink-100 text-pink-800' :
+                                            student.gender === 'Prefer not to say' ? 'bg-purple-100 text-purple-800' :
+                                            student.gender === 'Others' ? 'bg-yellow-100 text-yellow-800' :
                                             'bg-gray-100 text-gray-800'
                                         ]">
                                             {{ student.gender }}
@@ -206,7 +214,7 @@
                 </div>
             </div>
         </div>
-        <AddStudentModal :is-visible="isModalVisible"  @close="closeModal" /> 
+        <AddStudentModal :is-visible="isAddModalVisible"  @close="closeAddModal" @refreshTable="fetchStudents" /> 
     </main>
     </div>
 </template>

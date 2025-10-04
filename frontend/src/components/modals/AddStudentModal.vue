@@ -1,6 +1,8 @@
 <script setup>
-import { watch } from 'vue';
+import { watch, reactive, onMounted, ref } from 'vue';
 import { X } from 'lucide-vue-next';
+import StudentValidator from '@/utils/studentValidator.js';
+import axios from 'axios';
 
 // Props
 const props = defineProps({
@@ -11,10 +13,17 @@ const props = defineProps({
 });
 
 // Emits
-const emit = defineEmits(['close']);
+const emit = defineEmits(['close, refreshTable']);
 
 const closeModal = () => {
   emit('close');
+  errorMessage.value = '';
+  form.id_number = '';
+  form.first_name = '';
+  form.last_name = '';
+  form.year_level = '';
+  form.gender = '';
+  form.program_code = '';
 };
 
 // Close modal on Escape key
@@ -42,6 +51,73 @@ const setupKeyListener = () => {
 
 // Watch for visibility changes to manage event listener
 watch(() => props.isVisible, setupKeyListener);
+
+const form = reactive({
+    id_number: '',
+    first_name: '',
+    last_name: '',
+    year_level: '',
+    gender: '',
+    program_code: ''
+  });
+
+const errorMessage = ref('');
+const isLoading = ref(false);
+
+
+const submitStudent = async () => {
+  errorMessage.value = '';
+  isLoading.value = true;
+
+  try {
+    const validation = StudentValidator.validateAndFormatStudent(form);
+    
+    if (!validation.isValid) {
+      errorMessage.value = validation.error;
+      isLoading.value = false;
+      return;
+    }
+
+    // Send formatted data to backend for duplicate checking and DB operations
+    const response = await axios.post("http://127.0.0.1:8000/students", validation.formattedData);
+    console.log("Student added:", response.data);
+
+    // Success - refresh table and close modal
+    emit('refreshTable');
+    form.id_number = '';
+    form.first_name = '';
+    form.last_name = '';
+    form.year_level = '';
+    form.gender = '';
+    form.program_code = '';
+    closeModal();
+    
+  } catch (err) {
+    console.error("Error adding student:", err);
+
+    // Handle backend errors (duplicate validation, server errors)
+    errorMessage.value = err.response?.data?.error || 'An error occurred while adding the student.';
+  } finally {
+    isLoading.value = false;
+    console.log('Form data before validation:', { ...form });
+  }
+};
+
+const programs = ref([]);
+const fetchPrograms = async () => {
+      try{
+          const res = await fetch("http://127.0.0.1:8000/programs");
+          const data = await res.json();
+          programs.value = data;
+          console.log(programs)
+      } catch (err) {
+          console.error("Error fetching programs:", err);
+      } finally {
+        isLoading.value = false;
+      }
+  }
+  
+  onMounted(fetchPrograms);
 </script>
 
 <template>
@@ -67,11 +143,27 @@ watch(() => props.isVisible, setupKeyListener);
                 </button>
             </div>
 
-            <form class="space-y-4">
+            <div v-if="errorMessage" class="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+              <p class="text-sm text-red-600">{{ errorMessage }}</p>
+            </div>
+
+            <form @submit.prevent="submitStudent" class="space-y-4">
+                <div>
+                    <label for="idnumber" class="block text-sm font-medium text-gray-900 mb-1">ID Number</label>
+                    <input
+                    v-model="form.id_number"
+                    id="idnumber"
+                    type="text"
+                    required
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 sm:text-sm"
+                    placeholder="Enter ID number"
+                    />
+                </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label for="firstname" class="block text-sm font-medium text-gray-900 mb-1">First Name</label>
                         <input
+                        v-model="form.first_name"
                         id="firstname"
                         type="text"
                         required
@@ -82,6 +174,7 @@ watch(() => props.isVisible, setupKeyListener);
                     <div>
                         <label for="lastname" class="block text-sm font-medium text-gray-900 mb-1">Last Name</label>
                         <input
+                        v-model="form.last_name"
                         id="lastname"
                         type="text"
                         required
@@ -91,15 +184,16 @@ watch(() => props.isVisible, setupKeyListener);
                     </div>
                 </div>
                 <div>
-                    <label for="course" class="block text-sm font-medium text-gray-900 mb-1">Program</label>
+                    <label for="program" class="block text-sm font-medium text-gray-900 mb-1">Program</label>
                     <select
-                        id="course"
+                        v-model="form.program_code"
+                        id="program"
                         required
                         class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 sm:text-sm"
                     >
-                        <option value="">Select a program</option>
-                        <option v-for="program in programs" :key="program.code" :value="program.code">
-                        {{ program.code }} - {{ program.name }}
+                        <option value="" disabled selected>Select a program</option>
+                        <option v-for="program in programs" :key="program.program_code" :value="program.program_code">
+                        {{ program.program_code }}
                         </option>
                     </select>
                 </div>
@@ -107,28 +201,33 @@ watch(() => props.isVisible, setupKeyListener);
                     <div>
                         <label for="year" class="block text-sm font-medium text-gray-900 mb-1">Year Level</label>
                         <select
+                        v-model="form.year_level"
                         id="year"
                         required
                         class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 sm:text-sm"
                         >
-                        <option :value="1">1st Year</option>
-                        <option :value="2">2nd Year</option>
-                        <option :value="3">3rd Year</option>
-                        <option :value="4">4th Year</option>
-                        <option :value="4">4th+ Year</option>
+                        <option value="" disabled selected>Select a year level</option>
+                        <option :value="'1st'">1st Year</option>
+                        <option :value="'2nd'">2nd Year</option>
+                        <option :value="'3rd'">3rd Year</option>
+                        <option :value="'4th'">4th Year</option>
+                        <option :value="'4th+'">4th+ Year</option>
                         </select>
                     </div>
                     
                     <div>
                         <label for="gender" class="block text-sm font-medium text-gray-900 mb-1">Gender</label>
                         <select
+                        v-model="form.gender"
                         id="gender"
                         required
                         class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 sm:text-sm"
                         >
+                        <option value="" disabled selected>Select a gender</option>
                         <option value="Male">Male</option>
                         <option value="Female">Female</option>
-                        <option value="Other">Other</option>
+                        <option value="Others">Others</option>
+                        <option value="Prefer not to say">Prefer not to say</option>
                         </select>
                     </div>
                 </div>
@@ -137,15 +236,18 @@ watch(() => props.isVisible, setupKeyListener);
                     <button
                         type="button"
                         @click="closeModal"
+                        :disabled="isLoading"
                         class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-900 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
                     >
                         Cancel
                     </button>
                     <button
                         type="submit"
+                        :disabled="isLoading"
                         class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
                     >
-                        Add Student
+                        <span v-if="isLoading">Adding...</span>
+                        <span v-else>Add Student</span>
                     </button>
                 </div>
             </form>
