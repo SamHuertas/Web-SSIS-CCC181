@@ -51,7 +51,7 @@
     const itemsPerPage = ref(5);
 
     // Sorting state
-    const sortField = ref('college_code')
+    const sortField = ref('program_code')
     const sortDirection = ref('asc')
 
     const handleSort = (field) => {
@@ -245,32 +245,39 @@
                                  <div class="overflow-auto flex-1">
                                     <table class="w-full">
                                         <colgroup>
-                                            <col class="w-1/4"> 
-                                            <col class="w-2/4">
-                                            <col class="w-1/4">
-                                            <col class="w-1/4">
+                                            <col class="w-1/6"> 
+                                            <col class="w-2/6">
+                                            <col class="w-2/6">
+                                            <col class="w-1/6">
                                         </colgroup>
 
                                         <thead>
                                             <tr class="border-b border-gray-200">
                                                 <th 
                                                     @click="handleSort('program_code')" 
-                                                    class="text-left py-3 px-4 font-medium text-gray-600 cursor-pointer hover:bg-gray-50"
+                                                    class="text-left py-3 px-4 font-medium text-gray-600 cursor-pointer hover:bg-gray-50 whitespace-nowrap"
                                                 > Code 
-                                                    <span v-if="sortField === 'college_code'">
+                                                    <span v-if="sortField === 'program_code'">
                                                     {{ sortDirection === 'asc' ? '↑' : '↓' }}
                                                     </span>
                                                 </th>
                                                 <th 
-                                                    @click="handleSort('program_code')" 
-                                                    class="text-left py-3 px-4 font-medium text-gray-600 cursor-pointer hover:bg-gray-50"
+                                                    @click="handleSort('program_name')" 
+                                                    class="text-left py-3 px-4 font-medium text-gray-600 cursor-pointer hover:bg-gray-50 whitespace-nowrap"
                                                 > Program Name 
+                                                    <span v-if="sortField === 'program_name'">
+                                                    {{ sortDirection === 'asc' ? '↑' : '↓' }}
+                                                    </span>
+                                                </th>
+                                                <th 
+                                                    @click="handleSort('college_code')"
+                                                    class="text-left py-3 px-4 font-medium text-gray-600 cursor-pointer hover:bg-gray-50 whitespace-nowrap"
+                                                > College 
                                                     <span v-if="sortField === 'college_code'">
                                                     {{ sortDirection === 'asc' ? '↑' : '↓' }}
                                                     </span>
                                                 </th>
-                                                <th class="text-left py-3 px-4 font-medium text-gray-600 cursor-pointer hover:bg-gray-50"> College </th>
-                                                <th class="text-center py-3 px-4 font-medium text-gray-600">Actions</th>
+                                                <th class="text-center py-3 px-4 font-medium text-gray-600 whitespace-nowrap">Actions</th>
                                             </tr>
                                         </thead>
 
@@ -284,8 +291,8 @@
                                                 <td class="py-3 px-4 font-medium text-gray-900">{{ program.program_name }}</td>
                                                 <td class="py-3 px-4">
                                                     <div>
-                                                        <div class="font-medium">{{program.college_code}}</div>
-                                                        <div class="text-sm text-gray-500">{{program.colleges.college_name}}</div>
+                                                        <div :class="['font-medium', !program.college_code ? 'text-red-500' : '']">{{program.college_code || 'NULL' }}</div>
+                                                        <div v-if="program.college_code" class="text-sm text-gray-500">{{program.college_name || 'null'}}</div>
                                                     </div>
                                                 </td>
                                                 <td class="py-3 px-4">
