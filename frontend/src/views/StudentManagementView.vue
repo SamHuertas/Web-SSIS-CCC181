@@ -4,11 +4,13 @@
     import EditButton from '@/components/EditButton.vue';
     import DeleteButton from '@/components/DeleteButton.vue';
     import AddStudentModal from '@/components/modals/AddStudentModal.vue';
-import EditStudentModal from '@/components/modals/EditStudentModal.vue';
+    import EditStudentModal from '@/components/modals/EditStudentModal.vue';
+    import DeleteStudentModal from '@/components/modals/DeleteStudentModal.vue';
 
     // modal state
     const isAddModalVisible = ref(false);
     const isEditModalVisible = ref(false);
+    const isDeleteModalVisible = ref(false);
     const selectedStudent = ref(null);
     
     // Modal functions
@@ -28,6 +30,16 @@ import EditStudentModal from '@/components/modals/EditStudentModal.vue';
     const closeEditModal = () => {
         selectedStudent.value = null;
         isEditModalVisible.value = false;
+    };
+
+    const openDeleteModal = (student) => {
+        selectedStudent.value = { ...student };
+        isDeleteModalVisible.value = true;
+    };
+
+    const closeDeleteModal = () => {
+        selectedStudent.value = null;
+        isDeleteModalVisible.value = false;
     };
 
     const students = ref([]);
@@ -151,7 +163,7 @@ import EditStudentModal from '@/components/modals/EditStudentModal.vue';
                                     <td class="py-3 px-4">
                                         <div class="flex items-center justify-center space-x-2">
                                             <EditButton @click="openEditModal(student)" />
-                                            <DeleteButton/>
+                                            <DeleteButton @click="openDeleteModal(student)" />
                                         </div>
                                     </td>
                                 </tr>
@@ -229,6 +241,7 @@ import EditStudentModal from '@/components/modals/EditStudentModal.vue';
         </div>
         <AddStudentModal :is-visible="isAddModalVisible"  @close="closeAddModal" @refreshTable="forceRefresh" /> 
         <EditStudentModal :is-visible="isEditModalVisible" :student="selectedStudent" @close="closeEditModal" @refreshTable="forceRefresh" />
+        <DeleteStudentModal :is-visible="isDeleteModalVisible" :student="selectedStudent" @close="closeDeleteModal" @refreshTable="forceRefresh" />
     </main>
     </div>
 </template>
