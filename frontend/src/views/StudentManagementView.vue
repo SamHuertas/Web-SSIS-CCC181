@@ -4,9 +4,12 @@
     import EditButton from '@/components/EditButton.vue';
     import DeleteButton from '@/components/DeleteButton.vue';
     import AddStudentModal from '@/components/modals/AddStudentModal.vue';
+import EditStudentModal from '@/components/modals/EditStudentModal.vue';
 
     // modal state
     const isAddModalVisible = ref(false);
+    const isEditModalVisible = ref(false);
+    const selectedStudent = ref(null);
     
     // Modal functions
     const openAddModal = () => {
@@ -15,6 +18,16 @@
     
     const closeAddModal = () => {
         isAddModalVisible.value = false;
+    };
+
+    const openEditModal = (student) => {
+        selectedStudent.value = { ...student };
+        isEditModalVisible.value = true;
+    };
+
+    const closeEditModal = () => {
+        selectedStudent.value = null;
+        isEditModalVisible.value = false;
     };
 
     const students = ref([]);
@@ -36,7 +49,7 @@
     onMounted(fetchStudents);
 
     const forceRefresh = () => {
-        fetchPrograms();
+        fetchStudents();
     }
 </script>
 
@@ -137,7 +150,7 @@
                                     </td>
                                     <td class="py-3 px-4">
                                         <div class="flex items-center justify-center space-x-2">
-                                            <EditButton/>
+                                            <EditButton @click="openEditModal(student)" />
                                             <DeleteButton/>
                                         </div>
                                     </td>
@@ -214,7 +227,8 @@
                 </div>
             </div>
         </div>
-        <AddStudentModal :is-visible="isAddModalVisible"  @close="closeAddModal" @refreshTable="fetchStudents" /> 
+        <AddStudentModal :is-visible="isAddModalVisible"  @close="closeAddModal" @refreshTable="forceRefresh" /> 
+        <EditStudentModal :is-visible="isEditModalVisible" :student="selectedStudent" @close="closeEditModal" @refreshTable="forceRefresh" />
     </main>
     </div>
 </template>
