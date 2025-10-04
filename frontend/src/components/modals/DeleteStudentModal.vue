@@ -1,7 +1,8 @@
 <script setup>
   import { watch, reactive, ref } from 'vue';
-  import { TriangleAlert } from 'lucide-vue-next';
+  import { TriangleAlert, CircleCheckBig } from 'lucide-vue-next';
   import axios from 'axios';
+  import { useToast } from 'vue-toastification';
 
   // Props
   const props = defineProps({
@@ -67,6 +68,7 @@
 
   const errorMessage = ref('');
   const isLoading = ref(false);
+  const toast = useToast();
 
   const deleteStudent = async () => {
     isLoading.value = true;
@@ -76,6 +78,17 @@
         console.log("Student deleted successfully:", response.data);
         emit('refreshTable');
         closeModal();
+
+        // Show success toast notification
+      toast.success("Student deleted successfully!", {
+        timeout: 3000,
+        position: "bottom-right", 
+        closeOnClick: false,
+        hideProgressBar: false, 
+        icon: CircleCheckBig,
+        bodyClassName: "font-sans font-medium"
+      });
+
     } catch (err) {
       console.error("Error deleting student:", err);
     } finally {

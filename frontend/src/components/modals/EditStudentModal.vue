@@ -1,8 +1,9 @@
 <script setup>
     import { watch, reactive, ref, onMounted } from 'vue';
-    import { X } from 'lucide-vue-next';
+    import { X, CircleCheckBig } from 'lucide-vue-next';
     import axios from 'axios';
     import StudentValidator from '@/utils/studentValidator.js';
+    import { useToast } from 'vue-toastification';
 
     // Props
     const props = defineProps({
@@ -99,6 +100,7 @@
         }
     });
 
+    const toast = useToast();
     const submitStudent = async () => {
         errorMessage.value = '';
         isLoading.value = true;
@@ -126,6 +128,16 @@
         form.program_code = '';
         closeModal();
         
+        // Show success toast notification
+      toast.success("Student updated successfully!", {
+        timeout: 3000,
+        position: "bottom-right", 
+        closeOnClick: false,
+        hideProgressBar: false, 
+        icon: CircleCheckBig,
+        bodyClassName: "font-sans font-medium"
+      });
+
         } catch (err) {
         console.error("Error updating student:", err);
 

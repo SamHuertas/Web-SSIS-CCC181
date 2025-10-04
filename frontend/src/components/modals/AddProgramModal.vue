@@ -1,8 +1,9 @@
 <script setup>
   import { watch, reactive, ref, onMounted } from 'vue';
-  import { X } from 'lucide-vue-next';
+  import { X, CircleCheckBig } from 'lucide-vue-next';
   import axios from 'axios';
   import ProgramValidator from '@/utils/programValidator.js';
+  import { useToast } from 'vue-toastification';
 
   // Props
   const props = defineProps({
@@ -58,7 +59,7 @@
 
   const errorMessage = ref('');
   const isLoading = ref(false);
-
+  const toast = useToast();
 
   const submitProgram = async () => {
     errorMessage.value = '';
@@ -83,6 +84,16 @@
       form.program_name = '';
       form.college_code = '';
       closeModal();
+
+      // Show success toast notification
+      toast.success("Program added successfully!", {
+        timeout: 3000,
+        position: "bottom-right", 
+        closeOnClick: false,
+        hideProgressBar: false, 
+        icon: CircleCheckBig,
+        bodyClassName: "font-sans font-medium"
+      });
       
     } catch (err) {
       console.error("Error adding program:", err);

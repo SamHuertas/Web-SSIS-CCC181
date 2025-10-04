@@ -1,8 +1,9 @@
 <script setup>
   import { watch, reactive, ref, onMounted } from 'vue';
-  import { X } from 'lucide-vue-next';
+  import { X, CircleCheckBig } from 'lucide-vue-next';
   import axios from 'axios';
   import CollegeValidator from '@/utils/collegeValidator.js';
+  import { useToast } from 'vue-toastification';
 
   // Props
   const props = defineProps({
@@ -82,6 +83,7 @@
       errorMessage.value = ''; 
     }
   });
+  const toast = useToast();
 
   const submitCollege = async () => {
     errorMessage.value = '';
@@ -104,6 +106,16 @@
       form.college_code = '';
       form.college_name = '';
       closeModal();
+
+      // Show success toast notification
+      toast.success("College updated successfully!", {
+        timeout: 3000,
+        position: "bottom-right", 
+        closeOnClick: false,
+        hideProgressBar: false, 
+        icon: CircleCheckBig,
+        bodyClassName: "font-sans font-medium"
+      });
 
     } catch (err) {
       console.error("Error updating college:", err);
