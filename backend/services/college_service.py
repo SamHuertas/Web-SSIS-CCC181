@@ -55,3 +55,21 @@ class CollegeService:
             if not result:
                 raise Exception(f"College with code '{college_code}' not found")
             return result
+        
+    def get_stats_per_college(self):
+        """Get college stats: number of programs and students per college"""
+        with get_connection() as conn, conn.cursor() as cur:
+            cur.execute("""
+                SELECT 
+                    c.college_code, 
+                    c.college_name, 
+                    COUNT(DISTINCT p.program_code) AS program_count,
+                    COUNT(s.id_number) AS student_count
+                FROM colleges c
+                LEFT JOIN programs p ON c.college_code = p.college_code
+                LEFT JOIN students s ON p.program_code = s.program_code
+                GROUP BY c.college_code, c.college_name
+                ORDER BY student_count DESC;
+            """)
+            return cur.fetchall()
+    

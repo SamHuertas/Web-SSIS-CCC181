@@ -60,3 +60,12 @@ def delete_college(college_code):
         if 'not found' in str(e):
             return jsonify({'error': str(e)}), 404
         return jsonify({'error': str(e)}), 500
+
+@colleges_bp.route('/colleges/stats', methods=['GET'])
+def get_stats_per_college():
+    """Get number of students per college"""
+    try:
+        stats = college_service.get_stats_per_college()
+        return jsonify(stats)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500

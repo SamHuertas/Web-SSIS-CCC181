@@ -59,3 +59,15 @@ class StudentService:
             if not result:
                 raise Exception(f"Student with ID '{student_id}' not found")
             return result
+
+    def get_students_per_program(self):
+        """Get number of students per program"""
+        with get_connection() as conn, conn.cursor() as cur:
+            cur.execute("""
+                SELECT p.program_code, p.program_name, COUNT(s.id_number) AS student_count
+                FROM programs p
+                LEFT JOIN students s ON p.program_code = s.program_code
+                GROUP BY p.program_code, p.program_name
+                ORDER BY student_count DESC;
+            """)
+            return cur.fetchall()

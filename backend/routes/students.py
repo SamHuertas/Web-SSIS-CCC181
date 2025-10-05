@@ -60,3 +60,12 @@ def delete_student(student_id):
         if 'not found' in str(e):
             return jsonify({'error': str(e)}), 404
         return jsonify({'error': str(e)}), 500
+
+@students_bp.route('/students/programs', methods=['GET'])
+def get_students_per_program():
+    """Get number of students per program"""
+    try:
+        result = student_service.get_students_per_program()
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
