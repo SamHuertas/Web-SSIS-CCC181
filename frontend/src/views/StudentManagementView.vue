@@ -1,8 +1,8 @@
 <script setup>
     import { ContactRound, Plus, Search } from 'lucide-vue-next';
     import { ref, onMounted, computed } from 'vue'; 
-    import EditButton from '@/components/EditButton.vue';
-    import DeleteButton from '@/components/DeleteButton.vue';
+    import EditButton from '@/components/ui/EditButton.vue';
+    import DeleteButton from '@/components/ui/DeleteButton.vue';
     import AddStudentModal from '@/components/modals/AddStudentModal.vue';
     import EditStudentModal from '@/components/modals/EditStudentModal.vue';
     import DeleteStudentModal from '@/components/modals/DeleteStudentModal.vue';

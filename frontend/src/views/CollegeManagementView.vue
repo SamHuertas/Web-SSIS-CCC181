@@ -1,7 +1,7 @@
 <script setup>
     import { School, Search, Plus } from 'lucide-vue-next';
-    import EditButton from '@/components/EditButton.vue';
-    import DeleteButton from '@/components/DeleteButton.vue';
+    import EditButton from '@/components/ui/EditButton.vue';
+    import DeleteButton from '@/components/ui/DeleteButton.vue';
     import { defineProps, onMounted, reactive, ref, computed } from 'vue';
     import AddCollegeModal from '@/components/modals/AddCollegeModal.vue';
     import EditCollegeModal from '@/components/modals/EditCollegeModal.vue';

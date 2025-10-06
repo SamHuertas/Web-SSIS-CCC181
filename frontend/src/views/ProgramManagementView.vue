@@ -1,7 +1,7 @@
 <script setup>
     import { GraduationCap, Plus, Search } from 'lucide-vue-next';
-    import EditButton from '@/components/EditButton.vue';
-    import DeleteButton from '@/components/DeleteButton.vue';
+    import EditButton from '@/components/ui/EditButton.vue';
+    import DeleteButton from '@/components/ui/DeleteButton.vue';
     import { onMounted, ref, computed } from 'vue';
     import AddProgramModal from '@/components/modals/AddProgramModal.vue';
     import EditProgramModal from '@/components/modals/EditProgramModal.vue';
