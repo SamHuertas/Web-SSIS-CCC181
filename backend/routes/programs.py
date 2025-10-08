@@ -1,10 +1,12 @@
 from flask import Blueprint, request, jsonify
 from services.program_service import ProgramService
+from flask_jwt_extended import jwt_required
 
 programs_bp = Blueprint('programs', __name__)
 program_service = ProgramService()
 
 @programs_bp.route('/programs', methods=['GET'])
+@jwt_required()
 def get_programs():
     """Get all programs"""
     try:
@@ -14,6 +16,7 @@ def get_programs():
         return jsonify({'error': str(e)}), 500
     
 @programs_bp.route('/programs', methods=['POST'])
+@jwt_required()
 def add_program():
     """Add a new program"""
     try:
@@ -32,6 +35,7 @@ def add_program():
         return jsonify({'error': str(e)}), 500
     
 @programs_bp.route('/programs/<string:program_code>', methods=['PUT'])
+@jwt_required()
 def update_program(program_code):
     """Update a program"""
     try:
@@ -49,6 +53,7 @@ def update_program(program_code):
         return jsonify({'error': str(e)}), 500
     
 @programs_bp.route('/programs/<string:program_code>', methods=['DELETE'])
+@jwt_required()
 def delete_program(program_code):
     """Delete a program"""
     try:

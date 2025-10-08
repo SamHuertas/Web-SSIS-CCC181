@@ -1,10 +1,12 @@
 from flask import Blueprint, request, jsonify
 from services.student_service import StudentService 
+from flask_jwt_extended import jwt_required
 
 students_bp = Blueprint('students', __name__)
 student_service = StudentService()
 
 @students_bp.route('/students', methods=['GET'])
+@jwt_required()
 def get_students():
     """Get all students"""
     try:
@@ -14,6 +16,7 @@ def get_students():
         return jsonify({'error': str(e)}), 500
     
 @students_bp.route('/students', methods=['POST'])
+@jwt_required()
 def add_student():
     """Add a new student"""
     try:
@@ -32,6 +35,7 @@ def add_student():
         return jsonify({'error': str(e)}), 500
     
 @students_bp.route('/students/<string:student_id>', methods=['PUT'])
+@jwt_required()
 def update_student(student_id):
     """Update a student"""
     try:
@@ -49,6 +53,7 @@ def update_student(student_id):
         return jsonify({'error': str(e)}), 500
     
 @students_bp.route('/students/<string:student_id>', methods=['DELETE'])
+@jwt_required()
 def delete_student(student_id):
     """Delete a student"""
     try:
@@ -62,6 +67,7 @@ def delete_student(student_id):
         return jsonify({'error': str(e)}), 500
 
 @students_bp.route('/students/programs', methods=['GET'])
+@jwt_required()
 def get_students_per_program():
     """Get number of students per program"""
     try:

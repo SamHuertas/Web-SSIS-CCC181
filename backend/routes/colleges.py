@@ -1,10 +1,12 @@
 from flask import Blueprint, request, jsonify
 from services.college_service import CollegeService
+from flask_jwt_extended import jwt_required
 
 colleges_bp = Blueprint('colleges', __name__)
 college_service = CollegeService()
 
 @colleges_bp.route('/colleges', methods=['GET'])
+@jwt_required()
 def get_colleges():
     """Get all colleges"""
     try:
@@ -14,6 +16,7 @@ def get_colleges():
         return jsonify({'error': str(e)}), 500
     
 @colleges_bp.route('/colleges', methods=['POST'])
+@jwt_required()
 def add_college():
     """Add a new college"""
     try:
@@ -32,6 +35,7 @@ def add_college():
         return jsonify({'error': str(e)}), 500
     
 @colleges_bp.route('/colleges/<string:college_code>', methods=['PUT'])
+@jwt_required()
 def update_college(college_code):
     """Update a college"""
     try:
@@ -49,6 +53,7 @@ def update_college(college_code):
         return jsonify({'error': str(e)}), 500
     
 @colleges_bp.route('/colleges/<string:college_code>', methods=['DELETE'])
+@jwt_required()
 def delete_college(college_code):
     """Delete a college"""
     try:
