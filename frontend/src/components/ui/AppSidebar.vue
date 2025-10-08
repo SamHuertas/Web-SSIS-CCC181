@@ -1,9 +1,12 @@
 <script setup>
-import { LayoutDashboard, UserRound, GraduationCap, Building2, PanelRight, PanelLeft } from "lucide-vue-next";
+import { LayoutDashboard, UserRound, GraduationCap, Building2, PanelRight, PanelLeft, LogOut } from "lucide-vue-next";
 import { RouterLink, useRoute } from 'vue-router'
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
+import { useAuth } from '@/stores/auth.js';
 
 const route = useRoute();
+const { user, logout } = useAuth();
+
 const isActiveLink = (routePath) => {
   return route.path === routePath;
 }
@@ -13,6 +16,12 @@ const isCollapsed = ref(false);
 const toggleSidebar = () => {
   isCollapsed.value = !isCollapsed.value;
 }
+
+// Get user initials for avatar
+const userInitials = computed(() => {
+  if (!user.value) return 'U';
+  return user.value.username?.substring(0, 2).toUpperCase() || 'U';
+});
 </script>
 
 <template>
@@ -51,10 +60,10 @@ const toggleSidebar = () => {
       <ul class="space-y-2">
         <li>
           <RouterLink 
-            to="/" 
+            to="/home" 
             :class="[
               'group relative flex items-center rounded-lg transition-all duration-300 h-12',
-              isActiveLink('/') 
+              isActiveLink('/home') 
                 ? 'bg-green-600 hover:bg-green-700 text-white shadow-sm' 
                 : 'text-gray-700 hover:bg-gray-100'
             ]"
@@ -147,21 +156,45 @@ const toggleSidebar = () => {
       </ul>
     </nav>
 
-    <!-- Footer -->
-    <div class="p-4 border-t border-gray-200 overflow-hidden">
-      <div class="relative flex items-center h-10">
-        <div class="absolute left-0 rounded-full bg-gradient-to-br from-green-500 to-green-600 text-white font-bold flex items-center justify-center w-10 h-10 text-sm flex-shrink-0">
-          SH
+    <!-- Footer with User Info and Logout -->
+    <div class="p-3 border-t border-gray-200 overflow-hidden">
+      <div class="relative flex items-center mb-2 h-12">
+        <div class="absolute left-2 flex items-center justify-center">
+          <div class="rounded-full bg-gradient-to-br from-green-500 to-green-600 text-white font-bold flex items-center justify-center w-10 h-10 text-sm">
+            {{ userInitials }}
+          </div>
         </div>
         <div 
+          v-if="user"
           :class="[
-            'transition-all duration-300 overflow-hidden absolute left-14',
+            'font-medium text-normal whitespace-nowrap transition-all duration-300 overflow-hidden absolute left-14',
             isCollapsed ? 'opacity-0 w-0' : 'opacity-100 w-auto'
           ]"
         >
-          <p class="text-sm font-medium text-gray-900 truncate whitespace-nowrap">Sam Huertas</p>
-          <p class="text-xs text-gray-500 truncate whitespace-nowrap">Developer</p>
+          <p class="text-gray-900 truncate text-sm">{{ user.username }}</p>
+          <p class="text-xs text-gray-500 truncate max-w-[180px]">{{ user.email }}</p>
         </div>
+      </div>
+      
+      <!-- Logout Button -->
+      <div class="relative flex items-center h-12">
+        <button 
+          @click="logout"
+          class="group relative flex items-center w-full rounded-lg transition-all duration-300 h-12 text-red-600 hover:bg-red-50"
+          :title="isCollapsed ? 'Logout' : ''"
+        >
+          <div class="absolute left-4 flex items-center justify-center">
+            <LogOut class="w-4 h-4 flex-shrink-0" />
+          </div>
+          <span 
+            :class="[
+              'font-medium text-normal whitespace-nowrap transition-all duration-300 overflow-hidden absolute left-14',
+              isCollapsed ? 'opacity-0 w-0' : 'opacity-100 w-auto'
+            ]"
+          >
+            Logout
+          </span>
+        </button>
       </div>
     </div>
   </aside>
