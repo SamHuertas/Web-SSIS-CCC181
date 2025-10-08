@@ -11,6 +11,8 @@ flask-sqlalchemy = "*"
 requests = "*"
 utils = "*"
 psycopg2 = "*"
+flask-jwt-extended = "*"
+bcrypt = "*"
 
 [dev-packages]
 pytest = "*"
