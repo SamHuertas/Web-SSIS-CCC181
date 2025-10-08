@@ -100,7 +100,7 @@
       }
 
       // Send formatted data to backend for duplicate checking and DB operations
-      const response = await axios.put(`http://127.0.0.1:8000/colleges/${props.college.college_code}`, validation.formattedData);
+      const response = await axios.put(`/colleges/${props.college.college_code}`, validation.formattedData);
       console.log("College updated successfully:", response.data);
       emit('refreshTable');
       form.college_code = '';

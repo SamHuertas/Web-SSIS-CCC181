@@ -6,6 +6,7 @@
     import AddCollegeModal from '@/components/modals/AddCollegeModal.vue';
     import EditCollegeModal from '@/components/modals/EditCollegeModal.vue';
     import DeleteCollegeModal from '@/components/modals/DeleteCollegeModal.vue';
+    import axios from 'axios';
 
     // modal state
     const isAddModalVisible = ref(false);
@@ -67,8 +68,7 @@
 
     const fetchColleges = async () => {
         try{
-            const res = await fetch("http://127.0.0.1:8000/colleges");
-            const data = await res.json();
+            const { data } = await axios.get("/colleges");
             colleges.value = data;
             console.log(colleges)
         } catch (err) {

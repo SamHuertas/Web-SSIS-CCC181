@@ -105,7 +105,7 @@
       }
 
       // Send formatted data to backend for duplicate checking and DB operations
-      const response = await axios.put(`http://127.0.0.1:8000/programs/${props.program.program_code}`, validation.formattedData);
+      const response = await axios.put(`/programs/${props.program.program_code}`, validation.formattedData);
       console.log("Program updated successfully:", response.data);
       
       // Success - refresh table and close modal
@@ -137,17 +137,13 @@
 
   const colleges = ref([]);
   const fetchColleges = async () => {
-        try{
-            const res = await fetch("http://127.0.0.1:8000/colleges");
-            const data = await res.json();
-            colleges.value = data;
-            console.log(colleges)
-        } catch (err) {
-            console.error("Error fetching colleges:", err);
-        } finally {
-          isLoading.value = false;
-        }
-    }
+  try {
+    const { data } = await axios.get("/colleges");
+    colleges.value = data;
+  } catch (err) {
+    console.error("Error fetching colleges:", err);
+  }
+};
   
   onMounted(fetchColleges);
 </script>

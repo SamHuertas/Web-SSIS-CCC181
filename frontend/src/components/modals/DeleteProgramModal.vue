@@ -67,7 +67,7 @@
     isLoading.value = true;
     errorMessage.value = '';
     try{
-        const response = await axios.delete(`http://127.0.0.1:8000/programs/${props.program.program_code}`);
+        const response = await axios.delete(`/programs/${props.program.program_code}`);
         console.log("Program deleted successfully:", response.data);
         emit('refreshTable');
         closeModal();

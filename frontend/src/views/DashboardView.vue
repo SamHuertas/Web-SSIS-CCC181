@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { ContactRound, GraduationCap, School, TrendingUp, Building2, University } from 'lucide-vue-next';
+import axios from 'axios';
 
 // State
 const colleges = ref([]);
@@ -13,8 +14,8 @@ const collegeStats = ref([]);
 // API Calls
 const fetchColleges = async () => {
   try {
-    const res = await fetch("http://127.0.0.1:8000/colleges");
-    colleges.value = await res.json();
+    const { data } = await axios.get("/colleges");
+    colleges.value = data;
   } catch (err) {
     console.error("Error fetching colleges:", err);
   }
@@ -22,8 +23,8 @@ const fetchColleges = async () => {
 
 const fetchPrograms = async () => {
   try {
-    const res = await fetch("http://127.0.0.1:8000/programs");
-    programs.value = await res.json();
+    const { data } = await axios.get("/programs");
+    programs.value = data;
   } catch (err) {
     console.error("Error fetching programs:", err);
   }
@@ -31,8 +32,8 @@ const fetchPrograms = async () => {
 
 const fetchStudents = async () => {
   try {
-    const res = await fetch("http://127.0.0.1:8000/students");
-    students.value = await res.json();
+    const { data } = await axios.get("/students");
+    students.value = data;
   } catch (err) {
     console.error("Error fetching students:", err);
   }
@@ -40,8 +41,8 @@ const fetchStudents = async () => {
 
 const fetchStudentsPerCollege = async () => {
   try {
-    const res = await fetch("http://127.0.0.1:8000/colleges/stats");
-    studentsPerCollege.value = await res.json();
+    const { data } = await axios.get("/colleges/stats");
+    studentsPerCollege.value = data;
   } catch (error) {
     console.error("Error fetching students per college:", error);
   }
@@ -49,8 +50,8 @@ const fetchStudentsPerCollege = async () => {
 
 const fetchStudentsPerProgram = async () => {
   try {
-    const res = await fetch("http://127.0.0.1:8000/students/programs");
-    studentsPerProgram.value = await res.json();
+    const { data } = await axios.get("/students/programs");
+    studentsPerProgram.value = data;
   } catch (error) {
     console.error("Error fetching students per program:", error);
   }
@@ -58,8 +59,8 @@ const fetchStudentsPerProgram = async () => {
 
 const fetchCollegeStats = async () => {
   try {
-    const res = await fetch("http://127.0.0.1:8000/colleges/stats");
-    collegeStats.value = await res.json();
+    const { data } = await axios.get("/colleges/stats");
+    collegeStats.value = data;
   } catch (error) {
     console.error("Error fetching college statistics:", error);
   }

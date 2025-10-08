@@ -6,6 +6,7 @@
     import AddProgramModal from '@/components/modals/AddProgramModal.vue';
     import EditProgramModal from '@/components/modals/EditProgramModal.vue';
     import DeleteProgramModal from '@/components/modals/DeleteProgramModal.vue';
+    import axios from 'axios';
 
     // modal state
     const isAddModalVisible = ref(false);
@@ -66,17 +67,16 @@
     }
 
     const fetchPrograms = async () => {
-        try{
-            const res = await fetch("http://127.0.0.1:8000/programs");
-            const data = await res.json();
+        try {
+            const { data } = await axios.get("/programs");
             programs.value = data;
-            console.log(programs)
+            console.log(programs);
         } catch (err) {
             console.error("Error fetching programs:", err);
         } finally {
             loading.value = false;
         }
-    }
+    };
 
     onMounted(fetchPrograms);
 

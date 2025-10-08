@@ -66,7 +66,7 @@
     isLoading.value = true;
     errorMessage.value = '';
     try{
-        const response = await axios.delete(`http://127.0.0.1:8000/colleges/${props.college.college_code}`);
+        const response = await axios.delete(`/colleges/${props.college.college_code}`);
         console.log("College deleted successfully:", response.data);
         emit('refreshTable');
         closeModal();

@@ -6,6 +6,7 @@
     import AddStudentModal from '@/components/modals/AddStudentModal.vue';
     import EditStudentModal from '@/components/modals/EditStudentModal.vue';
     import DeleteStudentModal from '@/components/modals/DeleteStudentModal.vue';
+    import axios from 'axios';
 
     // modal state
     const isAddModalVisible = ref(false);
@@ -66,17 +67,16 @@
     }
 
     const fetchStudents = async () => {
-        try{
-            const res = await fetch("http://127.0.0.1:8000/students");
-            const data = await res.json();
+        try {
+            const { data } = await axios.get("/students");
             students.value = data;
-            console.log(students)
+            console.log(students.value);
         } catch (err) {
             console.error("Error fetching students:", err);
         } finally {
             loading.value = false;
         }
-    }
+    };
 
     onMounted(fetchStudents);
 
@@ -250,11 +250,11 @@
                                     <table class="w-full">
                                         <colgroup>
                                             <col class="w-1/12"> 
+                                            <col class="w-1/6">
                                             <col class="w-1/4">
-                                            <col class="w-1/4">
                                             <col class="w-1/12">
                                             <col class="w-1/12">
-                                            <col class="w-1/12">
+                                            <col class="w-1/6">
                                             <col class="w-1/6">
                                         </colgroup>
 

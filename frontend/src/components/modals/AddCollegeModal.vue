@@ -73,7 +73,7 @@
       }
 
       // Send formatted data to backend for duplicate checking and DB operations
-      const response = await axios.post("http://127.0.0.1:8000/colleges", validation.formattedData);
+      const response = await axios.post("/colleges", validation.formattedData);
       console.log("College added:", response.data);
       
       // Success - refresh table and close modal
