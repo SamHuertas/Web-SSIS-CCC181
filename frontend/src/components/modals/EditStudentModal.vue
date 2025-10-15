@@ -1,5 +1,5 @@
 <script setup>
-    import { watch, reactive, ref, onMounted } from 'vue';
+    import { watch, reactive, ref, onMounted, computed } from 'vue';
     import { X, CircleCheckBig } from 'lucide-vue-next';
     import axios from 'axios';
     import StudentValidator from '@/utils/studentValidator.js';
@@ -159,6 +159,13 @@
 };
     
     onMounted(fetchPrograms);
+
+const sortedPrograms = computed(() => {
+  if (!programs.value) return [];
+  return [...programs.value].sort((a, b) => 
+    a.program_code.localeCompare(b.program_code)
+  );
+});
 </script>
 
 <template>
@@ -237,7 +244,7 @@
                         class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 sm:text-sm"
                     >
                         <option value="" disabled selected>Select a program</option>
-                        <option v-for="program in programs" :key="program.program_code" :value="program.program_code">
+                        <option v-for="program in sortedPrograms" :key="program.program_code" :value="program.program_code">
                         {{ program.program_code }}
                         </option>
                     </select>
