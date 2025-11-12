@@ -20,12 +20,24 @@ def get_students():
 def add_student():
     """Add a new student"""
     try:
-        data = request.json
-        if not data:
+        # Get form data instead of JSON
+        data = {
+            'id_number': request.form.get('id_number'),
+            'first_name': request.form.get('first_name'),
+            'last_name': request.form.get('last_name'),
+            'year_level': request.form.get('year_level'),
+            'gender': request.form.get('gender'),
+            'program_code': request.form.get('program_code')
+        }
+        
+        # Get the file if it exists
+        picture_file = request.files.get('picture')
+        
+        if not data['id_number']:
             return jsonify({'error': 'No data provided'}), 400
 
         # Service handles all business logic and duplicate checking
-        student = student_service.create_student(data)
+        student = student_service.create_student(data, picture_file)
         return jsonify(student), 201
 
     except Exception as e:
