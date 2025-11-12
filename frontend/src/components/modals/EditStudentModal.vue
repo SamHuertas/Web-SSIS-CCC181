@@ -29,6 +29,9 @@
         form.year_level = '';
         form.gender = '';
         form.program_code = '';
+        form.picture = null;
+        picturePreview.value = null;
+        currentPictureUrl.value = null;
     };
 
     // Close modal on Escape key
@@ -63,11 +66,55 @@
         last_name: '',
         year_level: '',
         gender: '',
-        program_code: ''
+        program_code: '',
+        picture: null
     });
 
+    const picturePreview = ref(null);
+    const currentPictureUrl = ref(null);
+    const fileInput = ref(null);
     const errorMessage = ref('');
     const isLoading = ref(false);
+
+    // Helper function to add cache-busting timestamp to image URLs
+    const getCacheBustedImageUrl = (url) => {
+        if (!url) return null;
+        const separator = url.includes('?') ? '&' : '?';
+        return `${url}${separator}t=${Date.now()}`;
+    }
+
+    // Handle picture upload
+    const handlePictureUpload = (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            form.picture = file;
+            
+            // Create preview
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                picturePreview.value = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    // Remove picture
+    const removePicture = () => {
+        form.picture = null;
+        picturePreview.value = null;
+        if (fileInput.value) {
+            fileInput.value.value = '';
+        }
+    };
+
+    // Format file size
+    const formatFileSize = (bytes) => {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+    };
 
     const populateForm = () => {
         if (props.student) {
@@ -77,6 +124,9 @@
             form.year_level = props.student.year_level;
             form.gender = props.student.gender;
             form.program_code = props.student.program_code;
+            form.picture = null;
+            picturePreview.value = null;
+            currentPictureUrl.value = props.student.picture || null;
         } else {
             form.id_number = '';
             form.first_name = '';
@@ -84,6 +134,9 @@
             form.year_level = '';
             form.gender = '';
             form.program_code = '';
+            form.picture = null;
+            picturePreview.value = null;
+            currentPictureUrl.value = null;
         }
     };
 
@@ -95,8 +148,8 @@
     // Also populate form when modal becomes visible
     watch(() => props.isVisible, (isVisible) => {
         if (isVisible) {
-        populateForm();
-        errorMessage.value = ''; 
+            populateForm();
+            errorMessage.value = ''; 
         }
     });
 
@@ -106,66 +159,72 @@
         isLoading.value = true;
 
         try {
-        const validation = StudentValidator.validateAndFormatStudent(form);
+            const validation = StudentValidator.validateAndFormatStudent(form);
 
-        if (!validation.isValid) {
-            errorMessage.value = validation.error;
-            isLoading.value = false;
-            return;
-        }
+            if (!validation.isValid) {
+                errorMessage.value = validation.error;
+                isLoading.value = false;
+                return;
+            }
 
-        // Send formatted data to backend for duplicate checking and DB operations
-        const response = await axios.put(`/students/${props.student.id_number}`, validation.formattedData);
-        console.log("Student updated successfully:", response.data);
+            // Create FormData for file upload
+            const formData = new FormData();
+            formData.append('id_number', validation.formattedData.id_number);
+            formData.append('first_name', validation.formattedData.first_name);
+            formData.append('last_name', validation.formattedData.last_name);
+            formData.append('year_level', validation.formattedData.year_level);
+            formData.append('gender', validation.formattedData.gender);
+            formData.append('program_code', validation.formattedData.program_code);
+            
+            // Add picture if new one is uploaded
+            if (validation.formattedData.picture) {
+                formData.append('picture', validation.formattedData.picture);
+            }
 
-        // Success - refresh table and close modal
-        emit('refreshTable');
-        form.id_number = '';
-        form.first_name = '';
-        form.last_name = '';
-        form.year_level = '';
-        form.gender = '';
-        form.program_code = '';
-        closeModal();
-        
-        // Show success toast notification
-      toast.success("Student updated successfully!", {
-        timeout: 3000,
-        position: "bottom-right", 
-        closeOnClick: false,
-        hideProgressBar: false, 
-        icon: CircleCheckBig,
-        bodyClassName: "font-sans font-medium"
-      });
+            // Send to backend
+            const response = await axios.put(`/students/${props.student.id_number}`, formData);
+            console.log("Student updated successfully:", response.data);
+
+            // Success - refresh table and close modal
+            emit('refreshTable');
+            closeModal();
+            
+            // Show success toast notification
+            toast.success("Student updated successfully!", {
+                timeout: 3000,
+                position: "bottom-right", 
+                closeOnClick: false,
+                hideProgressBar: false, 
+                icon: CircleCheckBig,
+                bodyClassName: "font-sans font-medium"
+            });
 
         } catch (err) {
-        console.error("Error updating student:", err);
-
-        // Handle backend errors (duplicate validation, server errors)
-        errorMessage.value = err.response?.data?.error || 'An error occurred while adding the student.';
+            console.error("Error updating student:", err);
+            errorMessage.value = err.response?.data?.error || 'An error occurred while updating the student.';
         } finally {
-        isLoading.value = false;
+            isLoading.value = false;
         }
     };
 
     const programs = ref([]);
     const fetchPrograms = async () => {
-  try {
-    const { data } = await axios.get("/programs");
-    programs.value = data;
-  } catch (err) {
-    console.error("Error fetching programs:", err);
-  }
-};
+        try {
+            const { data } = await axios.get("/programs");
+            programs.value = data;
+        } catch (err) {
+            console.error("Error fetching programs:", err);
+        }
+    };
     
     onMounted(fetchPrograms);
 
-const sortedPrograms = computed(() => {
-  if (!programs.value) return [];
-  return [...programs.value].sort((a, b) => 
-    a.program_code.localeCompare(b.program_code)
-  );
-});
+    const sortedPrograms = computed(() => {
+        if (!programs.value) return [];
+        return [...programs.value].sort((a, b) => 
+            a.program_code.localeCompare(b.program_code)
+        );
+    });
 </script>
 
 <template>
@@ -208,6 +267,100 @@ const sortedPrograms = computed(() => {
                     placeholder="Enter ID number"
                     />
                 </div>
+
+                <!-- Picture Upload Section -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-900 mb-1">Student Picture</label>
+                    
+                    <!-- Show current picture if exists and no new picture selected -->
+                    <div v-if="currentPictureUrl && !picturePreview" class="space-y-3">
+                        <div class="flex justify-center">
+                            <div class="border rounded-lg overflow-hidden" style="width: 150px; height: 150px;">
+                                <img 
+                                    :src="getCacheBustedImageUrl(currentPictureUrl)" 
+                                    alt="Current student picture" 
+                                    :key="currentPictureUrl + '-' + Date.now()"
+                                    class="w-full h-full object-cover" 
+                                />
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <input
+                                type="file"
+                                ref="fileInput"
+                                @change="handlePictureUpload"
+                                accept="image/*"
+                                :disabled="isLoading"
+                                class="hidden"
+                            />
+                            <button
+                                type="button"
+                                @click="$refs.fileInput.click()"
+                                :disabled="isLoading"
+                                class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm font-medium"
+                            >
+                                Change Picture
+                            </button>
+                            <p class="text-gray-500 text-xs mt-2">Current picture will be kept if not changed</p>
+                        </div>
+                    </div>
+
+                    <!-- Upload Area (when no picture exists) -->
+                    <div v-else-if="!currentPictureUrl && !picturePreview" class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                        <input
+                            type="file"
+                            ref="fileInput"
+                            @change="handlePictureUpload"
+                            accept="image/*"
+                            :disabled="isLoading"
+                            class="hidden"
+                        />
+                        <button
+                            type="button"
+                            @click="$refs.fileInput.click()"
+                            :disabled="isLoading"
+                            class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm font-medium"
+                        >
+                            Choose Image
+                        </button>
+                        <p class="text-gray-500 text-xs mt-2">PNG, JPG or JPEG (MAX. 5MB)</p>
+                    </div>
+
+                    <!-- Preview Area (when new image is selected) -->
+                    <div v-else class="space-y-3">
+                        <div class="flex justify-center">
+                            <div class="border rounded-lg overflow-hidden" style="width: 150px; height: 150px;">
+                                <img :src="picturePreview" alt="Student picture preview" class="w-full h-full object-cover" />
+                            </div>
+                        </div>
+                        
+                        <div class="flex gap-2">
+                            <button
+                                type="button"
+                                @click="removePicture"
+                                :disabled="isLoading"
+                                class="flex-1 px-3 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors text-sm font-medium"
+                            >
+                                Remove
+                            </button>
+                            <button
+                                type="button"
+                                @click="$refs.fileInput.click()"
+                                :disabled="isLoading"
+                                class="flex-1 px-3 py-2 border border-gray-300 text-gray-900 rounded-md hover:bg-gray-50 transition-colors text-sm font-medium"
+                            >
+                                Change
+                            </button>
+                        </div>
+
+                        <!-- File Info -->
+                        <div v-if="form.picture" class="text-xs text-gray-600 bg-gray-50 p-2 rounded">
+                            <p><strong>Name:</strong> {{ form.picture.name }}</p>
+                            <p><strong>Size:</strong> {{ formatFileSize(form.picture.size) }}</p>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label for="firstname" class="block text-sm font-medium text-gray-900 mb-1">First Name</label>

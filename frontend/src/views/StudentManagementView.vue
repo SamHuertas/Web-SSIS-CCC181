@@ -1,5 +1,5 @@
 <script setup>
-    import { ContactRound, Plus, Search } from 'lucide-vue-next';
+    import { ContactRound, Plus, Search, User } from 'lucide-vue-next';
     import { ref, onMounted, computed } from 'vue'; 
     import EditButton from '@/components/ui/EditButton.vue';
     import DeleteButton from '@/components/ui/DeleteButton.vue';
@@ -189,6 +189,12 @@
     const handleSearch = () => {
         currentPage.value = 1;
     };
+
+    const getCacheBustedImageUrl = (url) => {
+    if (!url) return null;
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}t=${Date.now()}`;
+}
 </script>
 
 <template>
@@ -249,6 +255,7 @@
                                 <div class="overflow-x-auto flex-1">
                                     <table class="w-full">
                                         <colgroup>
+                                            <col class="w-16"> 
                                             <col class="w-1/12"> 
                                             <col class="w-1/6">
                                             <col class="w-1/4">
@@ -260,6 +267,9 @@
 
                                         <thead>
                                             <tr class="border-b border-gray-200">
+                                                <th class="text-left py-3 px-4 font-medium text-gray-600 whitespace-nowrap">
+                                                    Picture
+                                                </th>
                                                 <th 
                                                     @click="handleSort('id_number')"
                                                     class="text-left py-3 px-4 font-medium text-gray-600 cursor-pointer hover:bg-gray-50 whitespace-nowrap"
@@ -325,6 +335,22 @@
                                             :key="student.id"
                                             class="border-b border-gray-100 hover:bg-gray-50"
                                             >
+                                                <!-- Profile Picture Column -->
+                                                <td class="py-3 px-4">
+                                                    <div class="flex items-center justify-center">
+                                                        <div v-if="student.picture" class="w-10 h-10 rounded-full overflow-hidden border-2 border-gray-200 shadow-sm">
+                                                            <img 
+                                                                :src="getCacheBustedImageUrl(student.picture)" 
+                                                                :key="student.picture + '-' + student.id_number"
+                                                                :alt="`${student.first_name} ${student.last_name}`"
+                                                                class="w-full h-full object-cover"
+                                                            />
+                                                        </div>
+                                                        <div v-else class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center border-2 border-gray-300">
+                                                            <User class="w-5 h-5 text-gray-500" />
+                                                        </div>
+                                                    </div>
+                                                </td>
                                                 <td class="py-3 px-4 font-mono text-sm">{{student.id_number}}</td>
                                                 <td class="py-3 px-4 font-medium text-gray-900">{{student.first_name}}</td>
                                                 <td class="py-3 px-4 font-medium text-gray-900">{{student.last_name}}</td>
