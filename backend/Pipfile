@@ -13,6 +13,7 @@ utils = "*"
 psycopg2 = "*"
 flask-jwt-extended = "*"
 bcrypt = "*"
+supabase = "*"
 
 [dev-packages]
 pytest = "*"
