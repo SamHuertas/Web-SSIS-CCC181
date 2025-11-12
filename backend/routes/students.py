@@ -51,11 +51,23 @@ def add_student():
 def update_student(student_id):
     """Update a student"""
     try:
-        data = request.json
-        if not data:
+        # Get form data instead of JSON 
+        data = {
+            'id_number': request.form.get('id_number'),
+            'first_name': request.form.get('first_name'),
+            'last_name': request.form.get('last_name'),
+            'year_level': request.form.get('year_level'),
+            'gender': request.form.get('gender'),
+            'program_code': request.form.get('program_code')
+        }
+        
+        # Get the file if it exists
+        picture_file = request.files.get('picture')
+        
+        if not data['id_number']:
             return jsonify({'error': 'No data provided'}), 400
         
-        student = student_service.update_student(student_id, data)
+        student = student_service.update_student(student_id, data, picture_file)
         return jsonify(student), 200
         
     except Exception as e:
