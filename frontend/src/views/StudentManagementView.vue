@@ -6,12 +6,14 @@
     import AddStudentModal from '@/components/modals/AddStudentModal.vue';
     import EditStudentModal from '@/components/modals/EditStudentModal.vue';
     import DeleteStudentModal from '@/components/modals/DeleteStudentModal.vue';
+    import StudentDetailsModal from '@/components/modals/StudentDetailsModal.vue';
     import axios from 'axios';
 
     // modal state
     const isAddModalVisible = ref(false);
     const isEditModalVisible = ref(false);
     const isDeleteModalVisible = ref(false);
+    const isDetailsModalVisible = ref(false);
     const selectedStudent = ref(null);
     
     // Modal functions
@@ -41,6 +43,16 @@
     const closeDeleteModal = () => {
         selectedStudent.value = null;
         isDeleteModalVisible.value = false;
+    };
+
+    const openDetailsModal = (student) => {
+        selectedStudent.value = { ...student };
+        isDetailsModalVisible.value = true;
+    };
+
+    const closeDetailsModal = () => {
+        selectedStudent.value = null;
+        isDetailsModalVisible.value = false;
     };
 
     const students = ref([]);
@@ -336,7 +348,7 @@
                                             class="border-b border-gray-100 hover:bg-gray-50"
                                             >
                                                 <!-- Profile Picture Column -->
-                                                <td class="py-3 px-4">
+                                                <td class="py-3 px-4 cursor-pointer" @click="openDetailsModal(student)">
                                                     <div class="flex items-center justify-center">
                                                         <div v-if="student.picture" class="w-10 h-10 rounded-full overflow-hidden border-2 border-gray-200 shadow-sm">
                                                             <img 
@@ -351,9 +363,9 @@
                                                         </div>
                                                     </div>
                                                 </td>
-                                                <td class="py-3 px-4 font-mono text-sm">{{student.id_number}}</td>
-                                                <td class="py-3 px-4 font-medium text-gray-900">{{student.first_name}}</td>
-                                                <td class="py-3 px-4 font-medium text-gray-900">{{student.last_name}}</td>
+                                                <td class="py-3 px-4 font-mono text-sm cursor-pointer" @click="openDetailsModal(student)">{{student.id_number}}</td>
+                                                <td class="py-3 px-4 font-medium text-gray-900 cursor-pointer" @click="openDetailsModal(student)">{{student.first_name}}</td>
+                                                <td class="py-3 px-4 font-medium text-gray-900 cursor-pointer" @click="openDetailsModal(student)">{{student.last_name}}</td>
                                                 <td :class="['font-medium py-3 px-4', !student.program_code ? 'text-red-500' : 'text-gray-900']">{{student.program_code || 'NULL' }}</td>
                                                 <td class="py-3 px-4 text-center">
                                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border border-gray-300">
@@ -465,6 +477,7 @@
         <AddStudentModal :is-visible="isAddModalVisible"  @close="closeAddModal" @refreshTable="forceRefresh" /> 
         <EditStudentModal :is-visible="isEditModalVisible" :student="selectedStudent" @close="closeEditModal" @refreshTable="forceRefresh" />
         <DeleteStudentModal :is-visible="isDeleteModalVisible" :student="selectedStudent" @close="closeDeleteModal" @refreshTable="forceRefresh" />
+        <StudentDetailsModal :is-visible="isDetailsModalVisible" :student="selectedStudent" @close="closeDetailsModal" />
     </main>
     </div>
 </template>
