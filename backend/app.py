@@ -1,10 +1,10 @@
 from flask import Flask
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
-from routes.students import students_bp
-from routes.colleges import colleges_bp
-from routes.programs import programs_bp
-from routes.auth import auth_bp
+from routes.student_routes import students_bp
+from routes.college_routes import colleges_bp
+from routes.program_routes import programs_bp
+from routes.auth_routes import auth_bp
 import os
 from dotenv import load_dotenv
 
