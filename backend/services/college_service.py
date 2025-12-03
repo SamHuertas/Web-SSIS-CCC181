@@ -5,9 +5,9 @@ class CollegeService:
     def __init__(self):
         self.college_repository = CollegeRepository()
     
-    def get_all_colleges(self):
-        """Get all colleges"""
-        return self.college_repository.find_all()
+    def get_all_colleges(self, page=1, per_page=10, search='', sort_field='college_code', sort_direction='asc'):
+        """Get paginated colleges with optional search and sorting"""
+        return self.college_repository.find_all(page, per_page, search, sort_field, sort_direction)
     
     def create_college(self, college_data):
         """Create a new college"""

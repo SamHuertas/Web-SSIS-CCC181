@@ -6,12 +6,55 @@ from queries.college_queries import CollegeQueries
 class CollegeRepository:
     def __init__(self):
         self.queries = CollegeQueries()
+        
+    ALLOWED_SORT_FIELDS = ['college_code', 'college_name']
     
-    def find_all(self):
-        """Get all colleges"""
+    def find_all(self, page=1, per_page=10, search='', sort_field='college_code', sort_direction='asc'):
+        """Get paginated colleges with optional search and sorting"""
+        # Validate sort parameters
+        if sort_field not in self.ALLOWED_SORT_FIELDS:
+            sort_field = 'college_code'
+        if sort_direction.lower() not in ['asc', 'desc']:
+            sort_direction = 'asc'
+        
+        offset = (page - 1) * per_page
+        
         with get_connection() as conn, conn.cursor() as cur:
-            cur.execute(self.queries.FIND_ALL)
-            return cur.fetchall()
+            if search:
+                # Add wildcards for LIKE search
+                search_pattern = f'%{search.lower()}%'
+                
+                # Get total count
+                cur.execute(self.queries.COUNT_ALL_SEARCH, (search_pattern, search_pattern))
+                total = cur.fetchone()['total']
+                
+                # Get paginated results
+                query = self.queries.FIND_ALL_SEARCH.format(
+                    sort_field=sort_field, 
+                    sort_direction=sort_direction
+                )
+                cur.execute(query, (search_pattern, search_pattern, per_page, offset))
+            else:
+                # Get total count
+                cur.execute(self.queries.COUNT_ALL)
+                total = cur.fetchone()['total']
+                
+                # Get paginated results
+                query = self.queries.FIND_ALL.format(
+                    sort_field=sort_field, 
+                    sort_direction=sort_direction
+                )
+                cur.execute(query, (per_page, offset))
+            
+            colleges = cur.fetchall()
+            
+            return {
+                'colleges': colleges,
+                'total': total,
+                'page': page,
+                'per_page': per_page,
+                'total_pages': (total + per_page - 1) // per_page  # Ceiling division
+            }
     
     def find_by_code(self, college_code):
         """Find a college by code"""

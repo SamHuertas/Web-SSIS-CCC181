@@ -2,7 +2,38 @@ class StudentQueries:
     
     FIND_ALL = """
         SELECT id_number, first_name, last_name, year_level, gender, program_code, picture
+        FROM students
+        ORDER BY {sort_field} {sort_direction}
+        LIMIT %s OFFSET %s;
+    """
+    
+    COUNT_ALL = """
+        SELECT COUNT(*) as total
         FROM students;
+    """
+    
+    FIND_ALL_SEARCH = """
+        SELECT id_number, first_name, last_name, year_level, gender, program_code, picture
+        FROM students
+        WHERE 
+            LOWER(id_number) LIKE %s OR
+            LOWER(first_name) LIKE %s OR
+            LOWER(last_name) LIKE %s OR
+            LOWER(program_code) LIKE %s OR
+            CAST(year_level AS TEXT) LIKE %s
+        ORDER BY {sort_field} {sort_direction}
+        LIMIT %s OFFSET %s;
+    """
+    
+    COUNT_ALL_SEARCH = """
+        SELECT COUNT(*) as total
+        FROM students
+        WHERE 
+            LOWER(id_number) LIKE %s OR
+            LOWER(first_name) LIKE %s OR
+            LOWER(last_name) LIKE %s OR
+            LOWER(program_code) LIKE %s OR
+            CAST(year_level AS TEXT) LIKE %s;
     """
     
     FIND_BY_ID = """

@@ -5,9 +5,9 @@ class ProgramService:
     def __init__(self):
         self.program_repository = ProgramRepository()
     
-    def get_all_programs(self):
-        """Get all programs with college details"""
-        return self.program_repository.find_all()
+    def get_all_programs(self, page=1, per_page=10, search='', sort_field='program_code', sort_direction='asc'):
+        """Get paginated programs with optional search and sorting"""
+        return self.program_repository.find_all(page, per_page, search, sort_field, sort_direction)
     
     def create_program(self, program_data):
         """Create a new program"""

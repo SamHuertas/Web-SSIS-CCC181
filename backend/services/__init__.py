@@ -3,11 +3,13 @@ from .college_service import CollegeService
 from .program_service import ProgramService
 from .student_service import StudentService
 from .storage_service import StorageService
+from .dashboard_service import DashboardService
 
 __all__ = [
     'AuthService',
     'CollegeService',
     'ProgramService',
     'StudentService',
-    'StorageService'
+    'StorageService',
+    'DashboardService'
 ]

@@ -1,5 +1,4 @@
 from flask import request, jsonify
-from flask_jwt_extended import jwt_required
 from services.college_service import CollegeService
 from utils.exceptions import DuplicateEntryError, NotFoundError
 
@@ -7,16 +6,30 @@ class CollegeController:
     def __init__(self):
         self.college_service = CollegeService()
     
-    @jwt_required()
     def get_all(self):
-        """Get all colleges"""
+        """Get all colleges with pagination, search, and sorting"""
         try:
-            colleges = self.college_service.get_all_colleges()
-            return jsonify(colleges), 200
+            # Get query parameters
+            page = request.args.get('page', 1, type=int)
+            per_page = request.args.get('per_page', 10, type=int)
+            search = request.args.get('search', '', type=str)
+            sort_field = request.args.get('sort_field', 'college_code', type=str)
+            sort_direction = request.args.get('sort_direction', 'asc', type=str)
+            
+            # Validate pagination parameters
+            if page < 1:
+                page = 1
+            if per_page < 1 or per_page > 100:  # Max 100 items per page
+                per_page = 10
+            
+            result = self.college_service.get_all_colleges(
+                page, per_page, search, sort_field, sort_direction
+            )
+            
+            return jsonify(result), 200
         except Exception as e:
             return jsonify({'error': str(e)}), 500
     
-    @jwt_required()
     def create(self):
         """Create a new college"""
         try:
@@ -32,7 +45,6 @@ class CollegeController:
         except Exception as e:
             return jsonify({'error': str(e)}), 500
     
-    @jwt_required()
     def update(self, college_code):
         """Update a college"""
         try:
@@ -48,7 +60,6 @@ class CollegeController:
         except Exception as e:
             return jsonify({'error': str(e)}), 500
     
-    @jwt_required()
     def delete(self, college_code):
         """Delete a college"""
         try:

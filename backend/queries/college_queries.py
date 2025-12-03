@@ -2,7 +2,32 @@ class CollegeQueries:
 
     FIND_ALL = """
         SELECT college_code, college_name
+        FROM colleges
+        ORDER BY {sort_field} {sort_direction}
+        LIMIT %s OFFSET %s;
+    """
+    
+    COUNT_ALL = """
+        SELECT COUNT(*) as total
         FROM colleges;
+    """
+    
+    FIND_ALL_SEARCH = """
+        SELECT college_code, college_name
+        FROM colleges
+        WHERE 
+            LOWER(college_code) LIKE %s OR
+            LOWER(college_name) LIKE %s
+        ORDER BY {sort_field} {sort_direction}
+        LIMIT %s OFFSET %s;
+    """
+    
+    COUNT_ALL_SEARCH = """
+        SELECT COUNT(*) as total
+        FROM colleges
+        WHERE 
+            LOWER(college_code) LIKE %s OR
+            LOWER(college_name) LIKE %s;
     """
     
     FIND_BY_CODE = """

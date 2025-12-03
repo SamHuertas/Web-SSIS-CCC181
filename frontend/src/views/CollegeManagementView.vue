@@ -2,7 +2,7 @@
     import { School, Search, Plus } from 'lucide-vue-next';
     import EditButton from '@/components/ui/EditButton.vue';
     import DeleteButton from '@/components/ui/DeleteButton.vue';
-    import { defineProps, onMounted, reactive, ref, computed } from 'vue';
+    import { defineProps, onMounted, reactive, ref, computed, watch } from 'vue';
     import AddCollegeModal from '@/components/modals/AddCollegeModal.vue';
     import EditCollegeModal from '@/components/modals/EditCollegeModal.vue';
     import DeleteCollegeModal from '@/components/modals/DeleteCollegeModal.vue';
@@ -43,6 +43,7 @@
         isDeleteModalVisible.value = false;
     };
 
+    // Data state
     const colleges = ref([]);
     const loading = ref(true);
     const searchTerm = ref('');
@@ -50,10 +51,17 @@
     // Pagination state
     const currentPage = ref(1);
     const itemsPerPage = ref(5);
+    const totalItems = ref(0);
+    const totalPages = ref(0);
 
     // Sorting state
     const sortField = ref('college_code')
     const sortDirection = ref('asc')
+
+    // Watch for changes to trigger new fetch
+    watch([currentPage, itemsPerPage, sortField, sortDirection, searchTerm], () => {
+        fetchColleges();
+    }, { immediate: false });
 
     const handleSort = (field) => {
         if (sortField.value === field) {
@@ -68,11 +76,31 @@
 
     const fetchColleges = async () => {
         try{
-            const { data } = await axios.get("/colleges");
-            colleges.value = data;
-            console.log(colleges)
+            loading.value = true;
+            
+            const params = {
+                page: currentPage.value,
+                per_page: itemsPerPage.value,
+                sort_field: sortField.value,
+                sort_direction: sortDirection.value
+            };
+            
+            if (searchTerm.value.trim()) {
+                params.search = searchTerm.value.trim();
+            }
+            
+            const { data } = await axios.get("/colleges", { params });
+            
+            colleges.value = data.colleges || [];
+            totalItems.value = data.total || 0;
+            totalPages.value = data.total_pages || 1;
+            
+            console.log("Fetched colleges:", data);
         } catch (err) {
             console.error("Error fetching colleges:", err);
+            colleges.value = [];
+            totalItems.value = 0;
+            totalPages.value = 0;
         } finally {
             loading.value = false;
         }
@@ -82,54 +110,12 @@
 
     const forceRefresh = () => {
         fetchColleges();
-        currentPage.value = 1; // Reset to first page on refresh
     }
 
-    // sorted and filtered colleges
-    const filteredAndSortedColleges = computed(() => {
-        let filtered = colleges.value;
-        
-        // Apply search filter
-        if (searchTerm.value) {
-            const term = searchTerm.value.toLowerCase();
-            filtered = filtered.filter(college => 
-                college.college_code.toLowerCase().includes(term) ||
-                college.college_name.toLowerCase().includes(term)
-            );
-        }
-        
-        // Apply sorting
-        return [...filtered].sort((a, b) => {
-            const aValue = a[sortField.value];
-            const bValue = b[sortField.value];
-            
-            if (sortDirection.value === 'asc') {
-                return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
-            } else {
-                return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
-            }
-        });
-    });
-
-    // Pagination
-    const totalPages = computed(() => {
-        return Math.ceil(filteredAndSortedColleges.value.length / itemsPerPage.value);
-    });
-
-    const paginatedColleges = computed(() => {
-        const startIndex = (currentPage.value - 1) * itemsPerPage.value;
-        const endIndex = startIndex + itemsPerPage.value;
-        return filteredAndSortedColleges.value.slice(startIndex, endIndex);
-    });
-
-    const startItem = computed(() => {
-        return (currentPage.value - 1) * itemsPerPage.value + 1;
-    });
-
-    const endItem = computed(() => {
-        const end = currentPage.value * itemsPerPage.value;
-        return end > filteredAndSortedColleges.value.length ? filteredAndSortedColleges.value.length : end;
-    });
+    // Reset to first page when search term changes
+    const handleSearch = () => {
+        currentPage.value = 1;
+    };
 
     // Pagination functions
     const goToPage = (page) => {
@@ -182,10 +168,15 @@
         return pages;
     });
 
-    // Reset to first page when search term changes
-    const handleSearch = () => {
-        currentPage.value = 1;
-    };
+    // Computed properties for showing items
+    const startItem = computed(() => {
+        return (currentPage.value - 1) * itemsPerPage.value + 1;
+    });
+
+    const endItem = computed(() => {
+        const end = currentPage.value * itemsPerPage.value;
+        return end > totalItems.value ? totalItems.value : end;
+    });
 </script>
 
 <template>
@@ -216,7 +207,7 @@
                         <!-- Search Section -->
                         <div class="p-6 pb-4 flex-shrink-0">
                             <div class="flex items-center justify-between mb-4">
-                                <h3 class="text-lg font-semibold text-gray-900">College Departments ({{ filteredAndSortedColleges.length }})</h3>
+                                <h3 class="text-lg font-semibold text-gray-900">College Departments ({{ totalItems }})</h3>
                                 <div class="flex items-center space-x-4">
                                     <div class="relative">
                                     <Search class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
@@ -236,8 +227,11 @@
                             <div v-if="loading" class="text-center py-8 text-gray-500 h-full flex items-center justify-center">
                                 Loading colleges...
                             </div>
-                            <div v-else-if="colleges.length === 0" class="text-center py-8 text-gray-500 h-full flex items-center justify-center">
+                            <div v-else-if="colleges.length === 0 && !searchTerm" class="text-center py-8 text-gray-500 h-full flex items-center justify-center">
                                 No colleges found. Add your first college!
+                            </div>
+                            <div v-else-if="colleges.length === 0 && searchTerm" class="text-center py-8 text-gray-500 h-full flex items-center justify-center">
+                                No colleges found matching your search.
                             </div>
                             <div v-else class="h-full flex flex-col">
                                 <!-- Scrollable table container -->
@@ -274,7 +268,7 @@
                                         </thead>
                                         <tbody>
                                             <tr
-                                            v-for="college in paginatedColleges"
+                                            v-for="college in colleges"
                                             :key="college.college_code"
                                              class="border-b border-gray-100 hover:bg-gray-50">
                                                 <td class="py-3 px-4 font-mono font-medium text-purple-600 whitespace-nowrap">{{college.college_code}}</td>
@@ -289,9 +283,6 @@
                                         </tbody>
                                     </table>
                                 </div>
-                                <div v-if="filteredAndSortedColleges.length === 0 && colleges.length > 0" class="text-center py-8 text-gray-500">
-                                    No colleges found matching your search.
-                                </div>
                             </div>
                         </div>
 
@@ -300,7 +291,7 @@
                             <div class="flex items-center justify-between px-6 py-4">
                                 <div class="flex items-center text-sm text-gray-700">
                                     <span>
-                                    Showing {{ startItem }} to {{ endItem }} of {{ filteredAndSortedColleges.length }} results
+                                    Showing {{ startItem }} to {{ endItem }} of {{ totalItems }} results
                                     </span>
                                 </div>
                                 

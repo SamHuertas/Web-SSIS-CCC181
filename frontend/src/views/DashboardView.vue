@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import { ContactRound, GraduationCap, School, TrendingUp, Building2, University } from 'lucide-vue-next';
 import axios from 'axios';
 
@@ -10,70 +10,84 @@ const students = ref([]);
 const studentsPerCollege = ref([]);
 const studentsPerProgram = ref([]);
 const collegeStats = ref([]);
+const loading = ref(true);
+const hasFetched = ref(false); // Prevent multiple fetches
 
-// API Calls
-const fetchColleges = async () => {
+// Single API call for all dashboard data
+const fetchDashboardData = async () => {
+  // Prevent multiple calls
+  if (hasFetched.value && studentsPerCollege.value.length > 0) {
+    console.log("⚠️ Dashboard data already fetched, skipping...");
+    return;
+  }
+  
   try {
-    const { data } = await axios.get("/colleges");
-    colleges.value = data;
+    console.log("🔄 FETCHING DASHBOARD DATA...");
+    loading.value = true;
+    
+    // Get all dashboard data in one call
+    const { data } = await axios.get("/dashboard/summary");
+    
+    console.log("✅ Data received. Counts:", {
+      students_per_college: data.students_per_college?.length || 0,
+      top_programs: data.top_programs?.length || 0,
+      college_stats: data.college_stats?.length || 0
+    });
+    
+    // RESET arrays first to prevent accumulation
+    colleges.value = [];
+    programs.value = [];
+    students.value = [];
+    studentsPerCollege.value = [];
+    studentsPerProgram.value = [];
+    collegeStats.value = [];
+    
+    // Use setTimeout to ensure reactive updates are batched
+    setTimeout(() => {
+      // Map data to original structure - using objects with proper counts
+      colleges.value = Array.from({ length: data.total_colleges || 0 }, (_, i) => ({ id: i }));
+      programs.value = Array.from({ length: data.total_programs || 0 }, (_, i) => ({ id: i }));
+      students.value = Array.from({ length: data.total_students || 0 }, (_, i) => ({ id: i }));
+      
+      // IMPORTANT: Use slice() to create new arrays and prevent reference issues
+      studentsPerCollege.value = [...(data.students_per_college || [])];
+      studentsPerProgram.value = [...(data.top_programs || [])];
+      collegeStats.value = [...(data.college_stats || [])];
+      
+      console.log("🎯 Final counts after setting:", {
+        studentsPerCollege: studentsPerCollege.value.length,
+        studentsPerProgram: studentsPerProgram.value.length,
+        collegeStats: collegeStats.value.length
+      });
+      
+      hasFetched.value = true;
+      loading.value = false;
+    }, 0);
+    
   } catch (err) {
-    console.error("Error fetching colleges:", err);
+    console.error("❌ Error fetching dashboard data:", err);
+    // Reset everything on error
+    colleges.value = [];
+    programs.value = [];
+    students.value = [];
+    studentsPerCollege.value = [];
+    studentsPerProgram.value = [];
+    collegeStats.value = [];
+    loading.value = false;
   }
 };
 
-const fetchPrograms = async () => {
-  try {
-    const { data } = await axios.get("/programs");
-    programs.value = data;
-  } catch (err) {
-    console.error("Error fetching programs:", err);
-  }
-};
-
-const fetchStudents = async () => {
-  try {
-    const { data } = await axios.get("/students");
-    students.value = data;
-  } catch (err) {
-    console.error("Error fetching students:", err);
-  }
-};
-
-const fetchStudentsPerCollege = async () => {
-  try {
-    const { data } = await axios.get("/colleges/stats");
-    studentsPerCollege.value = data;
-  } catch (error) {
-    console.error("Error fetching students per college:", error);
-  }
-};
-
-const fetchStudentsPerProgram = async () => {
-  try {
-    const { data } = await axios.get("/students/programs");
-    studentsPerProgram.value = data;
-  } catch (error) {
-    console.error("Error fetching students per program:", error);
-  }
-};
-
-const fetchCollegeStats = async () => {
-  try {
-    const { data } = await axios.get("/colleges/stats");
-    collegeStats.value = data;
-  } catch (error) {
-    console.error("Error fetching college statistics:", error);
-  }
-};
-
-// Load all data on mount
+// Load all data on mount - only once
 onMounted(() => {
-  fetchColleges();
-  fetchPrograms();
-  fetchStudents();
-  fetchStudentsPerCollege();
-  fetchStudentsPerProgram();
-  fetchCollegeStats();
+  console.log("🚀 Dashboard mounted");
+  fetchDashboardData();
+});
+
+// Optional: Clean up on unmount
+onUnmounted(() => {
+  console.log("🧹 Dashboard unmounted");
+  // Reset flag when component is destroyed
+  hasFetched.value = false;
 });
 </script>
 
@@ -86,6 +100,9 @@ onMounted(() => {
           <div>
             <h1 class="text-3xl font-bold text-gray-900">Dashboard</h1>
             <p class="text-gray-600 mt-2">Overview of your student information system</p>
+            <div v-if="studentsPerCollege.length > 7" class="text-sm text-red-500 mt-1">
+              ⚠️ Warning: Showing {{ studentsPerCollege.length }} colleges (expected max 7)
+            </div>
           </div>
 
           <!-- Stat Cards Section -->
@@ -96,7 +113,8 @@ onMounted(() => {
                 <ContactRound class="h-4 w-4 text-blue-500" />
               </div>
               <div class="px-6 pb-4">
-                <div class="text-2xl font-bold text-gray-900">{{ students.length }}</div>
+                <div v-if="loading" class="text-2xl font-bold text-gray-900 animate-pulse">...</div>
+                <div v-else class="text-2xl font-bold text-gray-900">{{ students.length }}</div>
               </div>
             </div>
 
@@ -106,7 +124,8 @@ onMounted(() => {
                 <GraduationCap class="h-4 w-4 text-green-500" />
               </div>
               <div class="px-6 pb-4">
-                <div class="text-2xl font-bold text-gray-900">{{ programs.length }}</div>
+                <div v-if="loading" class="text-2xl font-bold text-gray-900 animate-pulse">...</div>
+                <div v-else class="text-2xl font-bold text-gray-900">{{ programs.length }}</div>
               </div>
             </div>
 
@@ -116,25 +135,40 @@ onMounted(() => {
                 <School class="h-4 w-4 text-purple-500" />
               </div>
               <div class="px-6 pb-4">
-                <div class="text-2xl font-bold text-gray-900">{{ colleges.length }}</div>
+                <div v-if="loading" class="text-2xl font-bold text-gray-900 animate-pulse">...</div>
+                <div v-else class="text-2xl font-bold text-gray-900">{{ colleges.length }}</div>
               </div>
             </div>
           </div>
 
           <!-- Second Section: Students per College & Top Programs -->
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <!-- Students per College -->
+            <!-- Students per College - FIXED -->
             <div class="bg-white border border-gray-200 rounded-lg shadow-sm">
               <div class="p-6 pb-4">
                 <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
                   <Building2 class="h-5 w-5 text-blue-500" />
-                  Students per College
+                  Students per College 
                 </h3>
               </div>
               <div class="px-6 pb-6">
-                <div class="space-y-4">
-                  <div v-for="college in studentsPerCollege" :key="college.college_code" class="flex items-center justify-between">
+                <div v-if="loading" class="text-center py-8 text-gray-500">
+                  Loading...
+                </div>
+                <div v-else-if="studentsPerCollege.length === 0" class="text-center py-8 text-gray-500">
+                  No data available
+                </div>
+                <div v-else>
+                  <!-- Simple, clean rendering without extra wrappers -->
+                  <div 
+                    v-for="(college, index) in studentsPerCollege" 
+                    :key="`college-${college.college_code}-${index}`"
+                    class="flex items-center justify-between py-3 border-b border-gray-100 last:border-0"
+                  >
                     <div class="flex items-center gap-3">
+                      <div class="w-6 text-center text-sm text-gray-500">
+                        {{ index + 1 }}
+                      </div>
                       <div>
                         <div class="font-medium text-gray-900">{{ college.college_name }}</div>
                         <div class="text-sm text-gray-500">{{ college.college_code }}</div>
@@ -148,7 +182,7 @@ onMounted(() => {
               </div>
             </div>
 
-            <!-- Top Programs by Enrollment -->
+            <!-- Top Programs by Enrollment - FIXED -->
             <div class="bg-white border border-gray-200 rounded-lg shadow-sm">
               <div class="p-6 pb-4">
                 <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
@@ -157,8 +191,18 @@ onMounted(() => {
                 </h3>
               </div>
               <div class="px-6 pb-6">
-                <div class="space-y-4">
-                  <div v-for="(program, index) in studentsPerProgram.slice(0, 7)" :key="program.program_code" class="flex items-center justify-between">
+                <div v-if="loading" class="text-center py-8 text-gray-500">
+                  Loading...
+                </div>
+                <div v-else-if="studentsPerProgram.length === 0" class="text-center py-8 text-gray-500">
+                  No data available
+                </div>
+                <div v-else>
+                  <div 
+                    v-for="(program, index) in studentsPerProgram" 
+                    :key="`program-${program.program_code}-${index}`"
+                    class="flex items-center justify-between py-3 border-b border-gray-100 last:border-0"
+                  >
                     <div class="flex items-center gap-3">
                       <div class="flex items-center justify-center w-6 h-6 rounded-full bg-green-100 text-green-800 text-xs font-bold">
                         {{ index + 1 }}
@@ -184,13 +228,23 @@ onMounted(() => {
                 <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
                   <University class="h-5 w-5 text-purple-500" />
                   College Statistics
+                  <span class="text-sm font-normal text-gray-500">
+                    ({{ collegeStats.length }})
+                  </span>
                 </h3>
               </div>
               <div class="px-6 pb-6">
-                <div class="overflow-x-auto">
+                <div v-if="loading" class="text-center py-8 text-gray-500">
+                  Loading...
+                </div>
+                <div v-else-if="collegeStats.length === 0" class="text-center py-8 text-gray-500">
+                  No college statistics available
+                </div>
+                <div v-else class="overflow-x-auto">
                   <table class="w-full">
                     <thead>
                       <tr class="border-b border-gray-200">
+                        <th class="text-left py-3 px-4 font-medium text-gray-600">#</th>
                         <th class="text-left py-3 px-4 font-medium text-gray-600">College</th>
                         <th class="text-left py-3 px-4 font-medium text-gray-600">Code</th>
                         <th class="text-center py-3 px-4 font-medium text-gray-600">Programs</th>
@@ -198,7 +252,12 @@ onMounted(() => {
                       </tr>
                     </thead>
                     <tbody>
-                      <tr v-for="college in collegeStats" :key="college.college_code" class="border-b border-gray-100 hover:bg-gray-50">
+                      <tr 
+                        v-for="(college, index) in collegeStats" 
+                        :key="`stat-${college.college_code}-${index}`"
+                        class="border-b border-gray-100 hover:bg-gray-50"
+                      >
+                        <td class="py-3 px-4 text-gray-500">{{ index + 1 }}</td>
                         <td class="py-3 px-4 font-medium text-gray-900">{{ college.college_name }}</td>
                         <td class="py-3 px-4 text-gray-600">{{ college.college_code }}</td>
                         <td class="py-3 px-4 text-center">
