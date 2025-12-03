@@ -32,7 +32,7 @@ class DashboardRepository:
             cur.execute(self.queries.GET_STUDENTS_PER_COLLEGE)
             return cur.fetchall()
     
-    def get_top_programs(self):
+    def get_top_programs(self, limit=7):
         """Get top 7 programs by enrollment"""
         with get_connection() as conn, conn.cursor() as cur:
             cur.execute(self.queries.GET_TOP_PROGRAMS)
@@ -45,25 +45,35 @@ class DashboardRepository:
             return cur.fetchall()
     
     def get_dashboard_summary(self):
-        """Get all dashboard data - FIXED: No shared cursor context"""
-        # Each method opens its own connection and cursor
-        total_students = self.get_total_students()
-        total_programs = self.get_total_programs()
-        total_colleges = self.get_total_colleges()
-        students_per_college = self.get_students_per_college()
-        top_programs = self.get_top_programs()
-        college_stats = self.get_college_stats()
-        
-        # Debug log to check counts
-        print(f"DEBUG: students_per_college count: {len(students_per_college)}")
-        print(f"DEBUG: top_programs count: {len(top_programs)}")
-        print(f"DEBUG: college_stats count: {len(college_stats)}")
-        
-        return {
-            'total_students': total_students,
-            'total_programs': total_programs,
-            'total_colleges': total_colleges,
-            'students_per_college': students_per_college,
-            'top_programs': top_programs,
-            'college_stats': college_stats
-        }
+        """Get all dashboard data using optimized separate queries"""
+        with get_connection() as conn, conn.cursor() as cur:
+            # Get totals
+            cur.execute(self.queries.GET_TOTAL_STUDENTS)
+            total_students = cur.fetchone()['total_students'] or 0
+            
+            cur.execute(self.queries.GET_TOTAL_PROGRAMS)
+            total_programs = cur.fetchone()['total_programs'] or 0
+            
+            cur.execute(self.queries.GET_TOTAL_COLLEGES)
+            total_colleges = cur.fetchone()['total_colleges'] or 0
+            
+            # Get top 7 colleges
+            cur.execute(self.queries.GET_STUDENTS_PER_COLLEGE)
+            students_per_college = cur.fetchall() or []
+            
+            # Get top 7 programs
+            cur.execute(self.queries.GET_TOP_PROGRAMS)
+            top_programs = cur.fetchall() or []
+            
+            # Get all college stats
+            cur.execute(self.queries.GET_COLLEGE_STATS)
+            college_stats = cur.fetchall() or []
+            
+            return {
+                'total_students': total_students,
+                'total_programs': total_programs,
+                'total_colleges': total_colleges,
+                'students_per_college': students_per_college,
+                'top_programs': top_programs,
+                'college_stats': college_stats
+            }

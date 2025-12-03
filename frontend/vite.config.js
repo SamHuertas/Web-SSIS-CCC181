@@ -10,7 +10,10 @@ export default defineConfig({
     vue(),
     vueDevTools(),
   ],
-  port: 3000,
+  build: {
+    outDir: "../backend/dist",  // build frontend directly into backend/dist
+    emptyOutDir: true
+  },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))

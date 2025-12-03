@@ -88,23 +88,25 @@ class DashboardQueries:
             (SELECT total_programs FROM program_counts) as total_programs,
             (SELECT total_colleges FROM college_counts) as total_colleges,
             COALESCE(
-                (SELECT json_agg(
+                json_agg(
                     json_build_object(
                         'college_code', spc.college_code,
                         'college_name', spc.college_name,
                         'student_count', COALESCE(spc.student_count, 0)
                     )
-                ) FROM students_per_college spc),
+                ),
                 '[]'::json
             ) as students_per_college,
             COALESCE(
-                (SELECT json_agg(
+                json_agg(
                     json_build_object(
                         'program_code', tp.program_code,
                         'program_name', tp.program_name,
                         'student_count', COALESCE(tp.student_count, 0)
                     )
-                ) FROM top_programs tp),
+                ),
                 '[]'::json
-            ) as top_programs;
+            ) as top_programs
+        FROM students_per_college spc
+        CROSS JOIN top_programs tp;
     """
