@@ -32,7 +32,7 @@ class AuthController:
                 'message': 'User registered successfully',
                 'access_token': access_token,
                 'user': user
-            }), 201
+            }), 200
             
         except ValidationError as e:
             return jsonify({'error': str(e)}), 400

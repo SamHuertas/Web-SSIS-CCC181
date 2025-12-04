@@ -9,6 +9,10 @@ class ProgramService:
         """Get paginated programs with optional search and sorting"""
         return self.program_repository.find_all(page, per_page, search, sort_field, sort_direction)
     
+    def get_all_programs_list(self):
+        """Get all programs without pagination (for dropdowns)"""
+        return self.program_repository.find_all_list()
+    
     def create_program(self, program_data):
         """Create a new program"""
         try:

@@ -97,3 +97,9 @@ class CollegeRepository:
         with get_connection() as conn, conn.cursor() as cur:
             cur.execute(self.queries.GET_STATS)
             return cur.fetchall()
+    
+    def find_all_list(self):
+        """Get all colleges without pagination (for dropdowns)"""
+        with get_connection() as conn, conn.cursor() as cur:
+            cur.execute(self.queries.COLLEGE_LIST)
+            return cur.fetchall()

@@ -67,3 +67,9 @@ class CollegeQueries:
         GROUP BY c.college_code, c.college_name
         ORDER BY student_count DESC;
     """
+    
+    COLLEGE_LIST = """
+        SELECT college_code, college_name
+        FROM colleges
+        ORDER BY college_name ASC;
+    """

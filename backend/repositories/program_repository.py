@@ -105,3 +105,9 @@ class ProgramRepository:
         with get_connection() as conn, conn.cursor() as cur:
             cur.execute(self.queries.DELETE, (program_code,))
             return cur.fetchone()
+        
+    def find_all_list(self):
+        """Get all programs without pagination (for dropdowns)"""
+        with get_connection() as conn, conn.cursor() as cur:
+            cur.execute(self.queries.PROGRAM_LIST)
+            return cur.fetchall()

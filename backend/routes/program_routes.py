@@ -17,6 +17,12 @@ def add_program():
     """Add a new program"""
     return program_controller.create()
 
+@programs_bp.route('/programs-list', methods=['GET'])
+
+def get_programs_list():
+    """Get all programs as simple list (for dropdowns)"""
+    return program_controller.get_all_list()
+
 @programs_bp.route('/programs/<string:program_code>', methods=['PUT'])
 @jwt_required()
 def update_program(program_code):

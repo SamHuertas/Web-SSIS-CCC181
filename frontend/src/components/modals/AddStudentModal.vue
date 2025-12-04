@@ -53,7 +53,12 @@ const setupKeyListener = () => {
 };
 
 // Watch for visibility changes to manage event listener
-watch(() => props.isVisible, setupKeyListener);
+watch(() => props.isVisible, (isVisible) => {
+  setupKeyListener();
+  if (isVisible && programs.value.length === 0) {
+    fetchPrograms();
+  }
+});
 
 const form = reactive({
     id_number: '',
@@ -166,19 +171,25 @@ const submitStudent = async () => {
 };
 
 const programs = ref([]);
+const isLoadingPrograms = ref(false);
+
 const fetchPrograms = async () => {
+  isLoadingPrograms.value = true;
   try {
-    const { data } = await axios.get("/programs");
+    const { data } = await axios.get("/programs-list");
     programs.value = data;
   } catch (err) {
     console.error("Error fetching programs:", err);
+    console.error("Error details:", err.response?.data);
+  } finally {
+    isLoadingPrograms.value = false;
   }
 };
   
 onMounted(fetchPrograms);
 
 const sortedPrograms = computed(() => {
-  if (!programs.value) return [];
+  if (!programs.value || programs.value.length === 0) return [];
   return [...programs.value].sort((a, b) => 
     a.program_code.localeCompare(b.program_code)
   );
@@ -193,7 +204,10 @@ const sortedPrograms = computed(() => {
       class="fixed inset-0 z-50 bg-black/80"
       @click="closeOnBackdrop"
     >
-      <div class="fixed left-1/2 top-1/2 z-50 grid w-full max-w-2xl -translate-x-1/2 -translate-y-1/2 gap-4 border bg-white p-6 shadow-lg duration-200 sm:rounded-lg">
+      <div 
+        class="fixed left-1/2 top-1/2 z-50 grid w-full max-w-2xl -translate-x-1/2 -translate-y-1/2 gap-4 border bg-white p-6 shadow-lg duration-200 sm:rounded-lg"
+        @click.stop
+      >
         <!-- Close button -->
          <div>
             <div class="flex items-center justify-between mb-6">
@@ -314,17 +328,22 @@ const sortedPrograms = computed(() => {
                     </div>
                 </div>
                 <div>
-                    <label for="program" class="block text-sm font-medium text-gray-900 mb-1">Program</label>
+                    <label for="program" class="block text-sm font-medium text-gray-900 mb-1">
+                      Program
+                      <span v-if="isLoadingPrograms" class="text-xs text-gray-500 ml-2">(Loading...)</span>
+                    </label>
                     <select
                         v-model="form.program_code"
                         id="program"
                         required
-                        :disabled="isLoading"
+                        :disabled="isLoading || isLoadingPrograms"
                         class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 sm:text-sm"
                     >
-                        <option value="" disabled selected>Select a program</option>
+                        <option value="" disabled>
+                          {{ isLoadingPrograms ? 'Loading programs...' : sortedPrograms.length === 0 ? 'No programs available' : 'Select a program' }}
+                        </option>
                         <option v-for="program in sortedPrograms" :key="program.program_code" :value="program.program_code">
-                        {{ program.program_code }}
+                          {{ program.program_code }} - {{ program.program_name }}
                         </option>
                     </select>
                 </div>
@@ -338,7 +357,7 @@ const sortedPrograms = computed(() => {
                         :disabled="isLoading"
                         class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 sm:text-sm"
                         >
-                        <option value="" disabled selected>Select a year level</option>
+                        <option value="" disabled>Select a year level</option>
                         <option :value="'1st'">1st Year</option>
                         <option :value="'2nd'">2nd Year</option>
                         <option :value="'3rd'">3rd Year</option>
@@ -356,7 +375,7 @@ const sortedPrograms = computed(() => {
                         :disabled="isLoading"
                         class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 sm:text-sm"
                         >
-                        <option value="" disabled selected>Select a gender</option>
+                        <option value="" disabled>Select a gender</option>
                         <option value="Male">Male</option>
                         <option value="Female">Female</option>
                         <option value="Others">Others</option>

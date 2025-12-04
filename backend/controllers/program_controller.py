@@ -70,3 +70,11 @@ class ProgramController:
             return jsonify({'error': str(e)}), 404
         except Exception as e:
             return jsonify({'error': str(e)}), 500
+        
+    def get_all_list(self):
+        """Get all programs without pagination (for dropdowns)"""
+        try:
+            result = self.program_service.get_all_programs_list()
+            return jsonify(result), 200
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500

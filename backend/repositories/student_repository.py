@@ -9,8 +9,8 @@ class StudentRepository:
     
     ALLOWED_SORT_FIELDS = ['id_number', 'first_name', 'last_name', 'year_level', 'gender', 'program_code']
     
-    def find_all(self, page=1, per_page=10, search='', sort_field='id_number', sort_direction='asc'):
-        """Get paginated students with optional search and sorting"""
+    def find_all(self, page=1, per_page=10, search='', sort_field='id_number', sort_direction='asc', filters=None):
+        """Get paginated students with optional search, sorting, and filters"""
         # Validate sort parameters
         if sort_field not in self.ALLOWED_SORT_FIELDS:
             sort_field = 'id_number'
@@ -19,6 +19,23 @@ class StudentRepository:
         
         offset = (page - 1) * per_page
         
+        # Build filter clause and params
+        filter_clause = ""
+        filter_params = []
+        
+        if filters:
+            if filters.get('gender'):
+                filter_clause += " AND gender = %s"
+                filter_params.append(filters['gender'])
+            
+            if filters.get('year_level'):
+                filter_clause += " AND year_level = %s"
+                filter_params.append(filters['year_level'])
+            
+            if filters.get('program_code'):
+                filter_clause += " AND program_code = %s"
+                filter_params.append(filters['program_code'])
+        
         with get_connection() as conn, conn.cursor() as cur:
             if search:
                 # Add wildcards for LIKE search
@@ -26,21 +43,34 @@ class StudentRepository:
                 search_params = (search_pattern,) * 5  # 5 search fields
                 
                 # Get total count
-                cur.execute(self.queries.COUNT_ALL_SEARCH, search_params)
+                count_query = self.queries.COUNT_ALL_SEARCH.format(filter_clause=filter_clause)
+                cur.execute(count_query, search_params + tuple(filter_params))
                 total = cur.fetchone()['total']
                 
                 # Get paginated results
                 query = self.queries.FIND_ALL_SEARCH.format(
                     sort_field=sort_field, 
-                    sort_direction=sort_direction
+                    sort_direction=sort_direction,
+                    filter_clause=filter_clause
                 )
-                cur.execute(query, search_params + (per_page, offset))
+                cur.execute(query, search_params + tuple(filter_params) + (per_page, offset))
+            elif filter_clause:
+                # Only filters, no search
+                count_query = self.queries.COUNT_ALL_FILTER.format(filter_clause=filter_clause)
+                cur.execute(count_query, tuple(filter_params))
+                total = cur.fetchone()['total']
+                
+                query = self.queries.FIND_ALL_FILTER.format(
+                    sort_field=sort_field,
+                    sort_direction=sort_direction,
+                    filter_clause=filter_clause
+                )
+                cur.execute(query, tuple(filter_params) + (per_page, offset))
             else:
-                # Get total count
+                # No search, no filters
                 cur.execute(self.queries.COUNT_ALL)
                 total = cur.fetchone()['total']
                 
-                # Get paginated results
                 query = self.queries.FIND_ALL.format(
                     sort_field=sort_field, 
                     sort_direction=sort_direction
@@ -118,4 +148,10 @@ class StudentRepository:
         """Get number of students per program"""
         with get_connection() as conn, conn.cursor() as cur:
             cur.execute(self.queries.GET_STUDENTS_PER_PROGRAM)
+            return cur.fetchall()
+    
+    def get_programs(self):
+        """Get all programs for dropdown filter"""
+        with get_connection() as conn, conn.cursor() as cur:
+            cur.execute(self.queries.GET_ALL_PROGRAMS)
             return cur.fetchall()

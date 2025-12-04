@@ -30,6 +30,14 @@ class CollegeController:
         except Exception as e:
             return jsonify({'error': str(e)}), 500
     
+    def get_all_list(self):
+        """Get all colleges without pagination (for dropdowns)"""
+        try:
+            result = self.college_service.get_all_colleges_list()
+            return jsonify(result), 200
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
+    
     def create(self):
         """Create a new college"""
         try:

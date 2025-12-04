@@ -16,11 +16,12 @@ class StudentQueries:
         SELECT id_number, first_name, last_name, year_level, gender, program_code, picture
         FROM students
         WHERE 
-            LOWER(id_number) LIKE %s OR
+            (LOWER(id_number) LIKE %s OR
             LOWER(first_name) LIKE %s OR
             LOWER(last_name) LIKE %s OR
             LOWER(program_code) LIKE %s OR
-            CAST(year_level AS TEXT) LIKE %s
+            CAST(year_level AS TEXT) LIKE %s)
+            {filter_clause}
         ORDER BY {sort_field} {sort_direction}
         LIMIT %s OFFSET %s;
     """
@@ -29,11 +30,28 @@ class StudentQueries:
         SELECT COUNT(*) as total
         FROM students
         WHERE 
-            LOWER(id_number) LIKE %s OR
+            (LOWER(id_number) LIKE %s OR
             LOWER(first_name) LIKE %s OR
             LOWER(last_name) LIKE %s OR
             LOWER(program_code) LIKE %s OR
-            CAST(year_level AS TEXT) LIKE %s;
+            CAST(year_level AS TEXT) LIKE %s)
+            {filter_clause};
+    """
+    
+    FIND_ALL_FILTER = """
+        SELECT id_number, first_name, last_name, year_level, gender, program_code, picture
+        FROM students
+        WHERE 1=1
+            {filter_clause}
+        ORDER BY {sort_field} {sort_direction}
+        LIMIT %s OFFSET %s;
+    """
+    
+    COUNT_ALL_FILTER = """
+        SELECT COUNT(*) as total
+        FROM students
+        WHERE 1=1
+            {filter_clause};
     """
     
     FIND_BY_ID = """
@@ -68,4 +86,10 @@ class StudentQueries:
         LEFT JOIN students s ON p.program_code = s.program_code
         GROUP BY p.program_code, p.program_name
         ORDER BY student_count DESC;
+    """
+    
+    GET_ALL_PROGRAMS = """
+        SELECT program_code, program_name
+        FROM programs
+        ORDER BY program_name ASC;
     """

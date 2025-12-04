@@ -7,6 +7,7 @@
     import EditStudentModal from '@/components/modals/EditStudentModal.vue';
     import DeleteStudentModal from '@/components/modals/DeleteStudentModal.vue';
     import StudentDetailsModal from '@/components/modals/StudentDetailsModal.vue';
+    import StudentFilter from '@/components/ui/StudentFilter.vue';
     import axios from 'axios';
 
     // modal state
@@ -18,7 +19,9 @@
     
     // Modal functions
     const openAddModal = () => {
+        console.log('Opening add modal...');
         isAddModalVisible.value = true;
+        console.log('isAddModalVisible:', isAddModalVisible.value);
     };
     
     const closeAddModal = () => {
@@ -69,6 +72,9 @@
     const sortField = ref('id_number');
     const sortDirection = ref('asc');
 
+    // Filter state
+    const activeFilters = ref({});
+
     const handleSort = (field) => {
         if (sortField.value === field) {
             sortDirection.value = sortDirection.value === 'asc' ? 'desc' : 'asc';
@@ -80,18 +86,25 @@
         fetchStudents();
     };
 
+    const handleFilterChange = (filters) => {
+        activeFilters.value = filters;
+        currentPage.value = 1; // Reset to first page when filtering
+        fetchStudents();
+    };
+
     const fetchStudents = async () => {
         loading.value = true;
         try {
-            const { data } = await axios.get("/students", {
-                params: {
-                    page: currentPage.value,
-                    per_page: itemsPerPage.value,
-                    search: searchTerm.value,
-                    sort_field: sortField.value,
-                    sort_direction: sortDirection.value
-                }
-            });
+            const params = {
+                page: currentPage.value,
+                per_page: itemsPerPage.value,
+                search: searchTerm.value,
+                sort_field: sortField.value,
+                sort_direction: sortDirection.value,
+                ...activeFilters.value // Spread filter params
+            };
+
+            const { data } = await axios.get("/students", { params });
             
             students.value = data.students;
             totalStudents.value = data.total;
@@ -235,6 +248,7 @@
                                     placeholder="Search students..."
                                     class="pl-10 w-64 px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"/>
                             </div>
+                            <StudentFilter @filter-change="handleFilterChange" />
                         </div>
                     </div>
                 </div>

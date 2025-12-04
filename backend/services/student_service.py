@@ -7,9 +7,9 @@ class StudentService:
         self.student_repository = StudentRepository()
         self.storage_service = StorageService()
     
-    def get_all_students(self, page=1, per_page=10, search='', sort_field='id_number', sort_direction='asc'):
-        """Get paginated students with optional search and sorting"""
-        return self.student_repository.find_all(page, per_page, search, sort_field, sort_direction)
+    def get_all_students(self, page=1, per_page=10, search='', sort_field='id_number', sort_direction='asc', filters=None):
+        """Get paginated students with optional search, sorting, and filters"""
+        return self.student_repository.find_all(page, per_page, search, sort_field, sort_direction, filters)
     
     def create_student(self, student_data, picture_file=None):
         """Create a new student with optional picture"""
@@ -138,3 +138,7 @@ class StudentService:
     def get_students_per_program(self):
         """Get number of students per program"""
         return self.student_repository.get_students_per_program()
+    
+    def get_programs(self):
+        """Get all programs for dropdown filter"""
+        return self.student_repository.get_programs()

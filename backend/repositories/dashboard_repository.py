@@ -27,7 +27,7 @@ class DashboardRepository:
             return result['total_colleges'] if result else 0
     
     def get_students_per_college(self):
-        """Get top 7 colleges by student count"""
+        """Get colleges by student count"""
         with get_connection() as conn, conn.cursor() as cur:
             cur.execute(self.queries.GET_STUDENTS_PER_COLLEGE)
             return cur.fetchall()

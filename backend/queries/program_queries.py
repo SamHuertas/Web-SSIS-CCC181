@@ -62,3 +62,9 @@ class ProgramQueries:
         WHERE program_code = %s
         RETURNING program_code, program_name, college_code;
     """
+
+    PROGRAM_LIST = """
+        SELECT program_code, program_name, college_code
+        FROM programs
+        ORDER BY program_name ASC;
+    """

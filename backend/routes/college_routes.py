@@ -17,6 +17,11 @@ def add_college():
     """Add a new college"""
     return college_controller.create()
 
+@colleges_bp.route('/colleges-list', methods=['GET'])
+def get_colleges_list():
+    """Get all colleges as simple list (for dropdowns)"""
+    return college_controller.get_all_list()
+
 @colleges_bp.route('/colleges/<string:college_code>', methods=['PUT'])
 @jwt_required()
 def update_college(college_code):

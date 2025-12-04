@@ -9,6 +9,10 @@ class CollegeService:
         """Get paginated colleges with optional search and sorting"""
         return self.college_repository.find_all(page, per_page, search, sort_field, sort_direction)
     
+    def get_all_colleges_list(self):
+        """Get all colleges without pagination (for dropdowns)"""
+        return self.college_repository.find_all_list()
+    
     def create_college(self, college_data):
         """Create a new college"""
         try:

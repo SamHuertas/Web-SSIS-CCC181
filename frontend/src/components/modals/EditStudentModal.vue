@@ -58,7 +58,12 @@
     };
 
     // Watch for visibility changes to manage event listener
-    watch(() => props.isVisible, setupKeyListener);
+    watch(() => props.isVisible, (isVisible) => {
+        setupKeyListener();
+        if (isVisible && programs.value.length === 0) {
+            fetchPrograms();
+        }
+    });
 
     const form = reactive({
         id_number: '',
@@ -75,6 +80,7 @@
     const fileInput = ref(null);
     const errorMessage = ref('');
     const isLoading = ref(false);
+    const isLoadingPrograms = ref(false);
 
     // Helper function to add cache-busting timestamp to image URLs
     const getCacheBustedImageUrl = (url) => {
@@ -209,18 +215,24 @@
 
     const programs = ref([]);
     const fetchPrograms = async () => {
+        isLoadingPrograms.value = true;
         try {
-            const { data } = await axios.get("/programs");
+            console.log('Fetching programs...');
+            const { data } = await axios.get("/programs-list");
+            console.log('Programs fetched:', data);
             programs.value = data;
         } catch (err) {
             console.error("Error fetching programs:", err);
+            console.error("Error details:", err.response?.data);
+        } finally {
+            isLoadingPrograms.value = false;
         }
     };
     
     onMounted(fetchPrograms);
 
     const sortedPrograms = computed(() => {
-        if (!programs.value) return [];
+        if (!programs.value || programs.value.length === 0) return [];
         return [...programs.value].sort((a, b) => 
             a.program_code.localeCompare(b.program_code)
         );
@@ -388,17 +400,22 @@
                     </div>
                 </div>
                 <div>
-                    <label for="program" class="block text-sm font-medium text-gray-900 mb-1">Program</label>
+                    <label for="program" class="block text-sm font-medium text-gray-900 mb-1">
+                      Program
+                      <span v-if="isLoadingPrograms" class="text-xs text-gray-500 ml-2">(Loading...)</span>
+                    </label>
                     <select
                         v-model="form.program_code"
                         id="program"
                         required
-                        :disabled="isLoading"
+                        :disabled="isLoading || isLoadingPrograms"
                         class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 sm:text-sm"
                     >
-                        <option value="" disabled selected>Select a program</option>
+                        <option value="" disabled>
+                          {{ isLoadingPrograms ? 'Loading programs...' : sortedPrograms.length === 0 ? 'No programs available' : 'Select a program' }}
+                        </option>
                         <option v-for="program in sortedPrograms" :key="program.program_code" :value="program.program_code">
-                        {{ program.program_code }}
+                          {{ program.program_code }} - {{ program.program_name }}
                         </option>
                     </select>
                 </div>
@@ -412,7 +429,7 @@
                         :disabled="isLoading"
                         class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 sm:text-sm"
                         >
-                        <option value="" disabled selected>Select a year level</option>
+                        <option value="" disabled>Select a year level</option>
                         <option :value="'1st'">1st Year</option>
                         <option :value="'2nd'">2nd Year</option>
                         <option :value="'3rd'">3rd Year</option>
@@ -430,7 +447,7 @@
                         :disabled="isLoading"
                         class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 sm:text-sm"
                         >
-                        <option value="" disabled selected>Select a gender</option>
+                        <option value="" disabled>Select a gender</option>
                         <option value="Male">Male</option>
                         <option value="Female">Female</option>
                         <option value="Others">Others</option>

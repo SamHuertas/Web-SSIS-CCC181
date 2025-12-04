@@ -35,3 +35,9 @@ def delete_student(student_id):
 def get_students_per_program():
     """Get number of students per program"""
     return student_controller.get_students_per_program()
+
+@students_bp.route('/students/programs/list', methods=['GET'])
+@jwt_required()
+def get_programs():
+    """Get all programs for dropdown"""
+    return student_controller.get_programs()

@@ -109,7 +109,7 @@
   const colleges = ref([]);
   const fetchColleges = async () => {
     try {
-      const { data } = await axios.get("/colleges");
+      const { data } = await axios.get("/colleges-list");
       colleges.value = data;
     } catch (err) {
       console.error("Error fetching colleges:", err);

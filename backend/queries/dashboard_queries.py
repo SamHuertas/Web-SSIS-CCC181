@@ -22,7 +22,6 @@ class DashboardQueries:
         LEFT JOIN students s ON p.program_code = s.program_code
         GROUP BY c.college_code, c.college_name
         ORDER BY student_count DESC
-        LIMIT 7;
     """
     
     GET_TOP_PROGRAMS = """
