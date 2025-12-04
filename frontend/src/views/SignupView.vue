@@ -2,9 +2,10 @@
 import { ref } from 'vue'
 import { useAuth } from '@/stores/auth.js'
 import { UserPlus, User, Mail, Lock } from 'lucide-vue-next'
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router' // Added useRouter
 
 const { signup } = useAuth()
+const router = useRouter() // Initialized router
 
 const username = ref('')
 const email = ref('')
@@ -35,7 +36,10 @@ const handleSignup = async () => {
   
   const result = await signup(username.value, email.value, password.value)
   
-  if (!result.success) {
+  if (result.success) {
+    // Redirect to login page after successful registration
+    router.push('/login')
+  } else {
     error.value = result.error || 'Signup failed'
   }
   
@@ -46,9 +50,7 @@ const handleSignup = async () => {
 <template>
   <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-green-100 p-4">
     <div class="max-w-md w-full">
-      <!-- Card -->
       <div class="bg-white rounded-2xl shadow-xl p-8">
-        <!-- Header -->
         <div class="text-center mb-8">
           <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 mb-4">
             <UserPlus class="w-8 h-8 text-green-600" />
@@ -57,14 +59,11 @@ const handleSignup = async () => {
           <p class="text-gray-600 mt-2">Sign up for a new account</p>
         </div>
 
-        <!-- Error Message -->
         <div v-if="error" class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
           <p class="text-sm text-red-600">{{ error }}</p>
         </div>
 
-        <!-- Form -->
         <form @submit.prevent="handleSignup" class="space-y-6">
-          <!-- Username -->
           <div>
             <label for="username" class="block text-sm font-medium text-gray-700 mb-2">
               Username
@@ -84,7 +83,6 @@ const handleSignup = async () => {
             </div>
           </div>
 
-          <!-- Email -->
           <div>
             <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
               Email
@@ -104,7 +102,6 @@ const handleSignup = async () => {
             </div>
           </div>
 
-          <!-- Password -->
           <div>
             <label for="password" class="block text-sm font-medium text-gray-700 mb-2">
               Password
@@ -124,7 +121,6 @@ const handleSignup = async () => {
             </div>
           </div>
 
-          <!-- Confirm Password -->
           <div>
             <label for="confirmPassword" class="block text-sm font-medium text-gray-700 mb-2">
               Confirm Password
@@ -144,7 +140,6 @@ const handleSignup = async () => {
             </div>
           </div>
 
-          <!-- Submit Button -->
           <button
             type="submit"
             class="w-full py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold flex justify-center items-center"
@@ -154,7 +149,6 @@ const handleSignup = async () => {
             <span v-else>Signing up...</span>
           </button>
 
-          <!-- Already have account -->
           <p class="text-center text-sm text-gray-600 mt-4">
             Already have an account?
             <RouterLink to="/login" class="text-green-600 hover:underline font-medium">Log in</RouterLink>

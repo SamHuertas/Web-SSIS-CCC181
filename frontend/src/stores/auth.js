@@ -16,13 +16,7 @@ export function useAuth() {
         username, email, password
       })
 
-      localStorage.setItem('token', data.access_token)
-      localStorage.setItem('user', JSON.stringify(data.user))
-      isAuthenticated.value = true
-      user.value = data.user
-
-      toast.success('Account created successfully!')
-      router.push('/login')
+      toast.success('Account created successfully! Please log in.')
       return { success: true }
     } catch (error) {
       return { 
